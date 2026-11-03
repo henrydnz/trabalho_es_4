@@ -1,13 +1,13 @@
 package org.example.models.aluguel;
 
 import org.example.models.endereco.EnderecoEspecifico;
-import org.example.models.pessoa.Pessoa;
+import org.example.models.pessoa.PessoaJuridica;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class Aluguel {
-    private Pessoa cliente;
+    private PessoaJuridica.Pessoa cliente;
     private EnderecoEspecifico endereco;
 
     private Equipamento equipamentoAlugado;
@@ -21,7 +21,7 @@ public class Aluguel {
 
     private double valorTotal;
 
-    public Aluguel(Pessoa cliente, EnderecoEspecifico endereco,
+    public Aluguel(PessoaJuridica.Pessoa cliente, EnderecoEspecifico endereco,
                    Equipamento equipamentoAlugado, TipoEquipamento tipoEquipamentoSolicitado,
                    LocalDate dataPedido, LocalDateTime dataHoraInicioLocacao,
                    LocalDateTime dataHoraFimLocacao, LocalDateTime dataHoraEntrega,
@@ -39,11 +39,11 @@ public class Aluguel {
         this.valorTotal = valorTotal;
     }
 
-    public Pessoa getCliente() {
+    public PessoaJuridica.Pessoa getCliente() {
         return cliente;
     }
 
-    public void setCliente(Pessoa cliente) {
+    public void setCliente(PessoaJuridica.Pessoa cliente) {
         this.cliente = cliente;
     }
 

@@ -4,7 +4,7 @@ import org.example.models.endereco.EnderecoEspecifico;
 
 import java.util.List;
 
-public class PessoaJuridica extends Pessoa {
+public class PessoaJuridica extends PessoaJuridica.Pessoa {
     private String cnpj;
 
     public PessoaJuridica(String nome, List<Telefone> telefoneList, List<Email> emailList, EnderecoEspecifico endereco, String cnpj) {
@@ -20,5 +20,12 @@ public class PessoaJuridica extends Pessoa {
     @Override
     public void setDocumento(String documento) {
         this.cnpj = documento;
+    }
+
+    public static class Pessoa {
+        private String nome;
+
+
+
     }
 }

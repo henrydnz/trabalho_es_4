@@ -4,7 +4,7 @@ import org.example.models.endereco.EnderecoEspecifico;
 
 import java.util.List;
 
-public class PessoaFisica extends Pessoa {
+public class PessoaFisica extends PessoaJuridica.Pessoa {
     private String cpf;
 
     public PessoaFisica(String nome, List<Telefone> telefoneList, List<Email> emailList, EnderecoEspecifico endereco, String cpf) {
