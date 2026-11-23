@@ -1,6 +1,6 @@
 package org.example.models.aluguel;
 
-import org.example.models.endereco.EnderecoEspecifico;
+import org.example.models.pessoa.EnderecoEspecifico;
 import org.example.models.pessoa.PessoaJuridica;
 
 import java.time.LocalDate;

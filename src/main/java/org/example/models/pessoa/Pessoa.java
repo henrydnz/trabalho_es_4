@@ -1,19 +1,33 @@
 package org.example.models.pessoa;
 
-import java.util.List;
-import org.example.models.endereco.EnderecoEspecifico;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.util.List;
+
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "isFisica"
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = PessoaFisica.class, name = "true"),
+        @JsonSubTypes.Type(value = PessoaJuridica.class, name = "false")
+})
 public abstract class Pessoa {
     protected String nome;
     protected List<Telefone> telefoneList;
     protected List<Email> emailList;
     protected EnderecoEspecifico endereco;
+    protected Boolean isFisica;
 
-    public Pessoa(String nome, List<Telefone> telefoneList, List<Email> emailList, EnderecoEspecifico endereco) {
+    public  Pessoa() {}
+
+    public Pessoa(String nome, List<Telefone> telefoneList, List<Email> emailList, EnderecoEspecifico endereco, Boolean isFisica) {
         this.nome = nome;
         this.telefoneList = telefoneList;
         this.emailList = emailList;
         this.endereco = endereco;
+        this.isFisica = isFisica;
     }
 
     public String getNome() {
@@ -50,4 +64,12 @@ public abstract class Pessoa {
 
     public abstract String getDocumento();
     public abstract void setDocumento(String documento);
+
+    public Boolean getFisica() {
+        return isFisica;
+    }
+
+    public void setFisica(Boolean fisica) {
+        isFisica = fisica;
+    }
 }

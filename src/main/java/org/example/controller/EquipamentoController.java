@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.example.models.aluguel.Equipamento;
 import org.example.models.aluguel.TipoEquipamento;
+import org.example.service.EquipamentoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ public class EquipamentoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Equipamento> buscarEquipamentoPorID(@PathVariable String id){
+    public ResponseEntity<Equipamento> buscarEquipamentoPorID(@PathVariable Integer id){
         Equipamento equipamento = equipamentoService.buscarPorID(id);
 
         return ResponseEntity.ok(equipamento);

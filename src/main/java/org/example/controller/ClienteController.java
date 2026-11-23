@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import org.example.models.pessoa.Pessoa;
+import org.example.service.ClienteService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,40 +10,44 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/clientes")
 public class ClienteController {
+    private final ClienteService clienteService;
 
-    private final PessoaService pessoaService;
-
-    public ClienteController(PessoaService pessoaService) {
-        this.pessoaService = pessoaService;
+    public ClienteController (ClienteService clienteService) {
+        this.clienteService = clienteService;
     }
 
     @PostMapping
-    public ResponseEntity<Pessoa> cadastrarCliente(@RequestBody Pessoa cliente) {
-        Pessoa clienteSalvo = pessoaService.cadastrarCliente(cliente);
-
-        return ResponseEntity.ok().body(clienteSalvo);
+    public ResponseEntity<Pessoa> cadastrarPessoa(@RequestBody Pessoa pessoa) {
+        Pessoa pessoaSalva = clienteService.cadastrarPessoa(pessoa);
+        if (pessoaSalva == null)
+            return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(pessoaSalva);
     }
 
     @GetMapping
-    public ResponseEntity<List<Pessoa>> listarCliente() {
-        List<Pessoa> clientes = pessoaService.buscarTodos();
+    public ResponseEntity<List<Pessoa>> listarClientes() {
+        List<Pessoa> pessoas = clienteService.listarClientes();
 
-        return ResponseEntity.ok(clientes);
+        if (pessoas == null || pessoas.isEmpty())
+            return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(pessoas);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Pessoa> buscarClientePorID(@PathVariable String id) {
-        Pessoa cliente = pessoaService.buscarPorID(id);
+    public ResponseEntity<Pessoa> buscarClientePorDocumento(@PathVariable String id) {
+        Pessoa pessoa = clienteService.buscarPessoaPorID(id);
 
-        return ResponseEntity.ok().body(cliente);
+        if (pessoa == null)
+            return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(pessoa);
     }
 
-    @GetMapping
-    public ResponseEntity<Pessoa> buscarClientePorCPF(@RequestParam String cpf) {
-        Pessoa cliente = pessoaService.buscarPorCPF(cpf);
+    @GetMapping("/doc/{doc}")
+    public ResponseEntity<Pessoa> buscarClientePorDocumento(@PathVariable String doc) {
+        Pessoa pessoa = clienteService.buscarPessoaPorDocumento(doc);
 
-        return ResponseEntity.ok().body(cliente);
+        if (pessoa == null)
+            return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(pessoa);
     }
-
-
 }

@@ -1,14 +1,22 @@
 package org.example.models.pessoa;
 
-import org.example.models.endereco.EnderecoEspecifico;
-
 import java.util.List;
 
-public class PessoaFisica extends PessoaJuridica.Pessoa {
+public class PessoaFisica extends Pessoa {
     private String cpf;
 
+    public PessoaFisica() {}
+
     public PessoaFisica(String nome, List<Telefone> telefoneList, List<Email> emailList, EnderecoEspecifico endereco, String cpf) {
-        super(nome, telefoneList, emailList, endereco);
+        super(nome, telefoneList, emailList, endereco, true);
+        this.cpf = cpf;
+    }
+
+    public String getCpf() {
+        return cpf;
+    }
+
+    public void setCpf(String cpf) {
         this.cpf = cpf;
     }
 
