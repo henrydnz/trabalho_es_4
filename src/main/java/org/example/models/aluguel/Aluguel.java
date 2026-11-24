@@ -19,13 +19,13 @@ public class Aluguel {
     private LocalDateTime dataHoraEntrega;
     private LocalDateTime dataHoraDevolucao;
 
-    private double valorTotal;
+    private Double valorTotal;
 
     public Aluguel(Pessoa cliente, EnderecoEspecifico endereco,
                    Equipamento equipamentoAlugado, TipoEquipamento tipoEquipamentoSolicitado,
                    LocalDate dataPedido, LocalDateTime dataHoraInicioLocacao,
                    LocalDateTime dataHoraFimLocacao, LocalDateTime dataHoraEntrega,
-                   LocalDateTime dataHoraDevolucao, double valorTotal
+                   LocalDateTime dataHoraDevolucao, Double valorTotal
     ) {
         this.cliente = cliente;
         this.endereco = endereco;
