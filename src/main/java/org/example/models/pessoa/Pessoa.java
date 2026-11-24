@@ -1,5 +1,6 @@
 package org.example.models.pessoa;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.List;

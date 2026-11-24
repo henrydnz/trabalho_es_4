@@ -1,16 +1,18 @@
 package org.example.models.pessoa;
 
+import org.models.Endereco;
+
 public class EnderecoEspecifico {
-    private Integer idEndereco;
+    private Endereco endereco;
     private String numeroEndereco;
     private String complemento;
 
-    public Integer getIdEndereco() {
-        return idEndereco;
+    public Endereco getIdEndereco() {
+        return endereco;
     }
 
-    public void setIdEndereco(Integer idEndereco) {
-        this.idEndereco = idEndereco;
+    public void setEndereco(Endereco endereco) {
+        this.endereco = endereco;
     }
 
     public String getNumeroEndereco() {
