@@ -3,12 +3,16 @@ package org.example.models.aluguel;
 import org.example.models.pessoa.EnderecoEspecifico;
 import org.example.models.pessoa.Pessoa;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public class Aluguel {
+public class Aluguel implements Serializable {
+    private Integer idAluguel;
+    private Boolean isAtivo;
+
     private Pessoa cliente;
-    private EnderecoEspecifico endereco;
+    private EnderecoEspecifico enderecoEspecifico;
 
     private Equipamento equipamentoAlugado;
     private TipoEquipamento tipoEquipamentoSolicitado;
@@ -21,14 +25,19 @@ public class Aluguel {
 
     private Double valorTotal;
 
-    public Aluguel(Pessoa cliente, EnderecoEspecifico endereco,
+    public Aluguel() {
+    }
+
+    // 2. Construtor completo (ideal para o AluguelDAO montar o objeto vindo do SELECT)
+    public Aluguel(Integer idAluguel, Boolean isAtivo, Pessoa cliente, EnderecoEspecifico enderecoEspecifico,
                    Equipamento equipamentoAlugado, TipoEquipamento tipoEquipamentoSolicitado,
                    LocalDate dataPedido, LocalDateTime dataHoraInicioLocacao,
                    LocalDateTime dataHoraFimLocacao, LocalDateTime dataHoraEntrega,
-                   LocalDateTime dataHoraDevolucao, Double valorTotal
-    ) {
+                   LocalDateTime dataHoraDevolucao, Double valorTotal) {
+        this.idAluguel = idAluguel;
+        this.isAtivo = isAtivo;
         this.cliente = cliente;
-        this.endereco = endereco;
+        this.enderecoEspecifico = enderecoEspecifico;
         this.equipamentoAlugado = equipamentoAlugado;
         this.tipoEquipamentoSolicitado = tipoEquipamentoSolicitado;
         this.dataPedido = dataPedido;
@@ -39,6 +48,40 @@ public class Aluguel {
         this.valorTotal = valorTotal;
     }
 
+    public Aluguel(Pessoa cliente, EnderecoEspecifico enderecoEspecifico,
+                   TipoEquipamento tipoEquipamentoSolicitado, LocalDate dataPedido,
+                   LocalDateTime dataHoraInicioLocacao, LocalDateTime dataHoraFimLocacao,
+                   Double valorTotal) {
+        this.isAtivo = true;
+        this.cliente = cliente;
+        this.enderecoEspecifico = enderecoEspecifico;
+        this.tipoEquipamentoSolicitado = tipoEquipamentoSolicitado;
+        this.dataPedido = dataPedido;
+        this.dataHoraInicioLocacao = dataHoraInicioLocacao;
+        this.dataHoraFimLocacao = dataHoraFimLocacao;
+        this.valorTotal = valorTotal;
+    }
+
+    public Boolean getAtivo() {
+        return isAtivo;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        isAtivo = ativo;
+    }
+
+    public void setValorTotal(Double valorTotal) {
+        this.valorTotal = valorTotal;
+    }
+
+    public Integer getIdAluguel() {
+        return idAluguel;
+    }
+
+    public void setIdAluguel(Integer idAluguel) {
+        this.idAluguel = idAluguel;
+    }
+
     public Pessoa getCliente() {
         return cliente;
     }
@@ -47,12 +90,8 @@ public class Aluguel {
         this.cliente = cliente;
     }
 
-    public double getValorTotal() {
+    public Double getValorTotal() {
         return valorTotal;
-    }
-
-    public void setValorTotal(double valorTotal) {
-        this.valorTotal = valorTotal;
     }
 
     public LocalDateTime getDataHoraDevolucao() {
@@ -111,11 +150,11 @@ public class Aluguel {
         this.equipamentoAlugado = equipamentoAlugado;
     }
 
-    public EnderecoEspecifico getEndereco() {
-        return endereco;
+    public EnderecoEspecifico getEnderecoEspecifico() {
+        return enderecoEspecifico;
     }
 
-    public void setEndereco(EnderecoEspecifico endereco) {
-        this.endereco = endereco;
+    public void setEnderecoEspecifico(EnderecoEspecifico endereco) {
+        this.enderecoEspecifico = endereco;
     }
 }

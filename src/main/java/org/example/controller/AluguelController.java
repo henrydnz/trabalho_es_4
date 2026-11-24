@@ -40,6 +40,7 @@ public class AluguelController {
 
         return ResponseEntity.ok(aluguelEntregue);
     }
+
     @PutMapping("/{id}/devolucao")
     public ResponseEntity<Aluguel> registrarDevolucaoAluguel(@PathVariable Integer id,
                                                              @RequestParam LocalDateTime dtDevolucao) {

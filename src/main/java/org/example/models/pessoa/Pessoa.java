@@ -55,4 +55,5 @@ public abstract class Pessoa {
     public void setFisica(Boolean fisica) {
         isFisica = fisica;
     }
+
 }

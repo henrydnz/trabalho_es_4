@@ -48,11 +48,11 @@ public class ClienteService {
          pessoa.getEnderecoEspecifico().setComplemento(Utils.formatarStr(pessoa.getEnderecoEspecifico().getComplemento()));
          pessoa.getEnderecoEspecifico().setNumeroEndereco(Utils.formatarStrSv(pessoa.getEnderecoEspecifico().getNumeroEndereco()));
 
-        if (!verificarTelefones(pessoa.getTelefoneList())
-                || !verificarEmails(pessoa.getEmailList())
-                || !verificarDocumento(pessoa.getFisica(), pessoa.getDocumento())
-                || !verificarEnderecoEspecifico(pessoa.getEnderecoEspecifico())
-                || !verificarNome(pessoa.getFisica(), pessoa.getNome()))
+        if (!Utils.verificarTelefones(pessoa.getTelefoneList())
+                || !Utils.verificarEmails(pessoa.getEmailList())
+                || !Utils.verificarDocumento(pessoa.getFisica(), pessoa.getDocumento())
+                || !Utils.verificarEnderecoEspecifico(pessoa.getEnderecoEspecifico())
+                || !Utils.verificarNome(pessoa.getFisica(), pessoa.getNome()))
             return null;
 
         Endereco endereco = null;
@@ -98,81 +98,5 @@ public class ClienteService {
             return clienteDao.buscarClientePorCPF(doc);
 
         return clienteDao.buscarClientePorCNPJ(doc);
-    }
-
-    public boolean verificarTelefones(List<Telefone> telefones) {
-        if (telefones == null || telefones.isEmpty()) {
-            return false;
-        }
-
-        for (Telefone telefone : telefones) {
-            if (telefone == null
-                    || telefone.getNroFone() == null
-                    || telefone.getNroDDD() == null
-                    || telefone.getNroDDI() == null) {
-                return false;
-            }
-
-            String fone = telefone.getNroFone().trim();
-            String ddd = telefone.getNroDDD().getNroDDD().trim();
-            String ddi = telefone.getNroDDI().getNroDDI().trim();
-
-            if (!fone.matches("\\d{8,9}") || !ddd.matches("\\d{2}") || !ddi.matches("\\d{1,3}")) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public boolean verificarEmails(List<Email> emails) {
-        if (emails == null || emails.isEmpty()) {
-            return false;
-        }
-
-        for (Email email : emails) {
-            if (email == null || email.getEmail() == null) {
-                return false;
-            }
-
-            String enderecoEmail = email.getEmail().trim();
-            if (!enderecoEmail.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public boolean verificarDocumento(Boolean isFisica, String documento) {
-        if (isFisica == null || documento == null) {
-            return false;
-        }
-
-        String docLimpo = documento.trim();
-        if (isFisica) {
-            return docLimpo.matches("\\d{11}");
-        }
-        return docLimpo.matches("\\d{14}");
-    }
-
-    public boolean verificarEnderecoEspecifico(EnderecoEspecifico endereco) {
-        if (endereco == null
-                || endereco.getNumeroEndereco() == null
-                || endereco.getNumeroEndereco().isBlank()
-                || endereco.getNumeroEndereco().trim().length() > 14) {
-            return false;
-        }
-
-        return endereco.getComplemento() == null || endereco.getComplemento().length() <= 99;
-    }
-
-    public boolean verificarNome(Boolean isFisica, String nome) {
-        if (isFisica == null || nome == null || nome.isBlank()) {
-            return false;
-        }
-
-        if (isFisica) {
-            return nome.trim().matches("[\\p{L}\\s]+");
-        }
-        return true;
     }
 }

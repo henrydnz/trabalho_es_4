@@ -2,12 +2,10 @@ package org.example.models.aluguel;
 
 public class TipoEquipamento {
     private String nome;
-    private int quantidade;
-    private double valorDiaria;
+    private Double valorDiaria;
 
-    public TipoEquipamento(String nome, int quantidade, double valorDiaria) {
+    public TipoEquipamento(String nome, Double valorDiaria) {
         this.nome = nome;
-        this.quantidade = quantidade;
         this.valorDiaria = valorDiaria;
     }
 
@@ -19,19 +17,11 @@ public class TipoEquipamento {
         this.nome = nome;
     }
 
-    public double getValorDiaria() {
+    public Double getValorDiaria() {
         return valorDiaria;
     }
 
-    public void setValorDiaria(double valorDiaria) {
+    public void setValorDiaria(Double valorDiaria) {
         this.valorDiaria = valorDiaria;
-    }
-
-    public int getQuantidade() {
-        return quantidade;
-    }
-
-    public void setQuantidade(int quantidade) {
-        this.quantidade = quantidade;
     }
 }
