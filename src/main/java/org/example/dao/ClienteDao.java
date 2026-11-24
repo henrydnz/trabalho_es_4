@@ -133,7 +133,7 @@ public class ClienteDao {
     }
 
     @Transactional(readOnly = true)
-    public Pessoa buscarClientePorId(int id) {
+    public Pessoa buscarClientePorID(int id) {
         return primeiro(buscarClientes(
             """
             SELECT * FROM "Cliente"

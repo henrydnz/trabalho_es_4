@@ -77,7 +77,7 @@ public class AluguelService {
     }
 
     public Aluguel registrarEntregaAluguel(Integer id, LocalDateTime dtEntrega, Integer idEquipamento) {
-        Aluguel verif = aluguelDao.buscarAluguelPorId(id);
+        Aluguel verif = aluguelDao.buscarAluguelPorID(id);
         if(verif == null
                 || !dtEntrega.isAfter(verif.getDataHoraInicioLocacao())
                 || !dtEntrega.isBefore(verif.getDataHoraFimLocacao()))
@@ -87,7 +87,7 @@ public class AluguelService {
     }
 
     public Aluguel registrarDevolucaoAluguel(Integer id, LocalDateTime dtDevolucao, Double valorPago) {
-        Aluguel verif = aluguelDao.buscarAluguelPorId(id);
+        Aluguel verif = aluguelDao.buscarAluguelPorID(id);
         if(verif == null
                 || !dtDevolucao.isAfter(verif.getDataHoraInicioLocacao())
                 || !dtDevolucao.isAfter(verif.getDataHoraEntrega()))

@@ -81,7 +81,7 @@ public class ClienteService {
     }
 
     public Pessoa buscarClientePorID(Integer id){
-        return clienteDao.buscarClientePorId(id);
+        return clienteDao.buscarClientePorID(id);
     }
 
     public Pessoa buscarClientePorDocumento(String documento){
