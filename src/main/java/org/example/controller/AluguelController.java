@@ -43,8 +43,9 @@ public class AluguelController {
 
     @PutMapping("/{id}/devolucao")
     public ResponseEntity<Aluguel> registrarDevolucaoAluguel(@PathVariable Integer id,
-                                                             @RequestParam LocalDateTime dtDevolucao) {
-        Aluguel aluguel = aluguelService.registrarDevolucaoAluguel(id, dtDevolucao);
+                                                             @RequestParam LocalDateTime dtDevolucao,
+                                                             @RequestParam Double valorPago) {
+        Aluguel aluguel = aluguelService.registrarDevolucaoAluguel(id, dtDevolucao, valorPago);
 
         if (aluguel == null) {
             return ResponseEntity.badRequest().build();

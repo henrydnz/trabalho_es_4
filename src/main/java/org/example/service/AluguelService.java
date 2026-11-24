@@ -40,6 +40,12 @@ public class AluguelService {
         if(!Utils.verificarEnderecoEspecifico(aluguel.getEnderecoEspecifico()))
             return null;
 
+        long dias = java.time.temporal.ChronoUnit.DAYS.between(
+                aluguel.getDataHoraInicioLocacao().toLocalDate(),
+                aluguel.getDataHoraFimLocacao().toLocalDate());
+
+        aluguel.setValorTotal(dias * aluguel.getTipoEquipamentoSolicitado().getValorDiaria());
+
         Endereco endereco = null;
 
         try {
@@ -79,8 +85,14 @@ public class AluguelService {
         return aluguelDao.registrarEntregaAluguel(id, dtEntrega, idEquipamento);
     }
 
-    public Aluguel registrarDevolucaoAluguel(Integer id, LocalDateTime dtDevolucao) {
+    public Aluguel registrarDevolucaoAluguel(Integer id, LocalDateTime dtDevolucao, Double valorPago) {
+        Aluguel verif = aluguelDao.buscarAluguelPorId(id);
+        if(verif == null
+                || !dtDevolucao.isAfter(verif.getDataHoraInicioLocacao())
+                || !dtDevolucao.isAfter(verif.getDataHoraEntrega()))
+            return null;
 
+        return aluguelDao.registrarDevolucaoAluguel(id, dtDevolucao, valorPago);
     }
 
 }

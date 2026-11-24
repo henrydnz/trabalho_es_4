@@ -24,6 +24,7 @@ public class Aluguel implements Serializable {
     private LocalDateTime dataHoraDevolucao;
 
     private Double valorTotal;
+    private Double valorPago;
 
     public Aluguel() {
     }
@@ -33,7 +34,7 @@ public class Aluguel implements Serializable {
                    Equipamento equipamentoAlugado, TipoEquipamento tipoEquipamentoSolicitado,
                    LocalDate dataPedido, LocalDateTime dataHoraInicioLocacao,
                    LocalDateTime dataHoraFimLocacao, LocalDateTime dataHoraEntrega,
-                   LocalDateTime dataHoraDevolucao, Double valorTotal) {
+                   LocalDateTime dataHoraDevolucao, Double valorTotal, Double valorPago) {
         this.idAluguel = idAluguel;
         this.isAtivo = isAtivo;
         this.cliente = cliente;
@@ -46,6 +47,7 @@ public class Aluguel implements Serializable {
         this.dataHoraEntrega = dataHoraEntrega;
         this.dataHoraDevolucao = dataHoraDevolucao;
         this.valorTotal = valorTotal;
+        this.valorPago = valorPago;
     }
 
     public Aluguel(Pessoa cliente, EnderecoEspecifico enderecoEspecifico,
@@ -156,5 +158,13 @@ public class Aluguel implements Serializable {
 
     public void setEnderecoEspecifico(EnderecoEspecifico endereco) {
         this.enderecoEspecifico = endereco;
+    }
+
+    public Double getValorPago() {
+        return valorPago;
+    }
+
+    public void setValorPago(Double valorPago) {
+        this.valorPago = valorPago;
     }
 }
