@@ -29,7 +29,7 @@ public class EquipamentoController {
 
     @GetMapping
     public ResponseEntity<List<Equipamento>> listarEquipamentos(){
-        List<Equipamento> equipamentos = equipamentoService.buscarTodos();
+        List<Equipamento> equipamentos = equipamentoService.listarEquipamentos();
 
         if (equipamentos == null)
             return ResponseEntity.notFound().build();
@@ -38,8 +38,8 @@ public class EquipamentoController {
     }
 
     @GetMapping("/tipos")
-    public ResponseEntity<List<TipoEquipamento>> listarEquipamentosTipos(){
-        List<TipoEquipamento> tipos = equipamentoService.buscarTipos();
+    public ResponseEntity<List<TipoEquipamento>> listarTipoEquipamentos(){
+        List<TipoEquipamento> tipos = equipamentoService.listarTipoEquipamentos();
 
         if (tipos == null)
             return ResponseEntity.notFound().build();
@@ -49,7 +49,7 @@ public class EquipamentoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Equipamento> buscarEquipamentoPorID(@PathVariable Integer id){
-        Equipamento equipamento = equipamentoService.buscarPorID(id);
+        Equipamento equipamento = equipamentoService.buscarEquipamentoPorID(id);
 
         if (equipamento == null)
             return ResponseEntity.notFound().build();
@@ -59,7 +59,7 @@ public class EquipamentoController {
 
     @GetMapping("/disponiveis")
     public ResponseEntity<List<Equipamento>> listarEquipamentosDisponiveis(){
-        List<Equipamento> equipamentos = equipamentoService.buscarDisponiveis();
+        List<Equipamento> equipamentos = equipamentoService.listarEquipamentosDisponiveis();
 
         if (equipamentos == null)
             return ResponseEntity.notFound().build();

@@ -1,14 +1,20 @@
 package org.example.models.aluguel;
 
-public class Equipamento {
+import java.io.Serializable;
+
+public class Equipamento implements Serializable {
     private int numPatrimonio;
     private boolean isAlugado;
     private TipoEquipamento tipoEquipamento;
+    private Modelo modelo;
 
-    public Equipamento(int numPatrimonio, boolean isAlugado, TipoEquipamento tipoEquipamento) {
+    public Equipamento() {}
+
+    public Equipamento(int numPatrimonio, boolean isAlugado, TipoEquipamento tipoEquipamento, Modelo modelo) {
         this.numPatrimonio = numPatrimonio;
         this.isAlugado = isAlugado;
         this.tipoEquipamento = tipoEquipamento;
+        this.modelo = modelo;
     }
 
     public int getNumPatrimonio() {
@@ -33,5 +39,13 @@ public class Equipamento {
 
     public void setTipoEquipamento(TipoEquipamento tipoEquipamento) {
         this.tipoEquipamento = tipoEquipamento;
+    }
+
+    public Modelo getModelo() {
+        return modelo;
+    }
+
+    public void setModelo(Modelo modelo) {
+        this.modelo = modelo;
     }
 }

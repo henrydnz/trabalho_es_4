@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class AluguelService {
@@ -93,6 +94,18 @@ public class AluguelService {
             return null;
 
         return aluguelDao.registrarDevolucaoAluguel(id, dtDevolucao, valorPago);
+    }
+
+    public List<Aluguel> listarAlugueis() {
+        return aluguelDao.listarAlugueis();
+    }
+
+    public Aluguel buscarAluguelPorID(Integer id) {
+        return aluguelDao.buscarAluguelPorID(id);
+    }
+
+    public List<Aluguel> buscarAlugueisPorIDCliente(Integer id) {
+        return aluguelDao.buscarAlugueisPorIDCliente(id);
     }
 
 }
