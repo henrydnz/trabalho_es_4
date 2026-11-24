@@ -45,7 +45,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.example</groupId>
+            <groupId>org.models</groupId>
             <artifactId>endereco-models</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
