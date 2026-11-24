@@ -22,9 +22,7 @@ public class ClienteService {
     }
 
     public Pessoa cadastrarPessoa(Pessoa pessoa){
-        if(pessoa == null){
-            return null;
-        }
+        if(pessoa == null) return null;
 
         if(pessoa.getNome() ==  null
                 || pessoa.getFisica() ==  null
@@ -32,7 +30,7 @@ public class ClienteService {
                 || pessoa.getTelefoneList() == null
                 || pessoa.getDocumento() == null
                 || pessoa.getEnderecoEspecifico() == null
-                || pessoa.getEnderecoEspecifico().getEndereco() == null){}
+                || pessoa.getEnderecoEspecifico().getEndereco() == null)
             return null;
 
          pessoa.setDocumento(Utils.formatarStrNum(pessoa.getDocumento()));
@@ -75,7 +73,7 @@ public class ClienteService {
          pessoa.getEnderecoEspecifico().setEndereco(endereco);
 
 
-        return clienteDao.cadastrarPessoa(pessoa);
+        return clienteDao.cadastrarCliente(pessoa);
     }
 
     public List<Pessoa> listarClientes() {
@@ -83,7 +81,7 @@ public class ClienteService {
     }
 
     public Pessoa buscarClientePorID(Integer id){
-        return clienteDao.buscarClientePorID(id);
+        return clienteDao.buscarClientePorId(id);
     }
 
     public Pessoa buscarClientePorDocumento(String documento){

@@ -15,6 +15,7 @@ import java.util.List;
         @JsonSubTypes.Type(value = PessoaJuridica.class, name = "false")
 })
 public abstract class Pessoa {
+    protected Integer idPessoa;
     protected String nome;
     protected List<Telefone> telefoneList;
     protected List<Email> emailList;
@@ -41,11 +42,15 @@ public abstract class Pessoa {
     public void setEmailList(List<Email> emailList) {
         this.emailList = emailList;
     }
+    public void addEmail(String email){ this.emailList.add(new Email(email)); }
     public List<Telefone> getTelefoneList() {
         return telefoneList;
     }
     public void setTelefoneList(List<Telefone> telefoneList) {
         this.telefoneList = telefoneList;
+    }
+    public void addTelefone(String DDI, String DDD, String telefone){
+        this.telefoneList.add(new Telefone(new DDD(DDD), new DDI(DDI), telefone));
     }
     public abstract String getDocumento();
     public abstract void setDocumento(String documento);
@@ -56,4 +61,6 @@ public abstract class Pessoa {
         isFisica = fisica;
     }
 
+    public void setIdPessoa(Integer id) {  this.idPessoa = id; }
+    public Integer getIdPessoa() { return this.idPessoa; }
 }

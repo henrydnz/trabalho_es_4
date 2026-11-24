@@ -1,157 +1,271 @@
 package org.example.dao;
 
-import org.example.models.pessoa.Email;
-import org.example.models.pessoa.EnderecoEspecifico;
-import org.example.models.pessoa.Pessoa;
-
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.example.models.pessoa.*;
-
 import org.models.Endereco;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public class ClienteDao {
     private final JdbcTemplate jdbc;
-    ClienteDao(JdbcTemplate jdbc) {this.jdbc = jdbc; }
+    ClienteDao(JdbcTemplate jdbc) { this.jdbc = jdbc; }
 
-    private DDD getDDDById(int id){
-        return jdbc.query(
+    private List<Pessoa> buscarClientes(String sql, Object... args) {
+        List<Pessoa> pessoas = jdbc.query(sql, (rs, rowNum) -> {
 
-            """
-            SELECT * FROM "DDD"
-            WHERE "idDDD" = ?;
-            """,
+            int id = rs.getInt("idCliente");
+            String nome = rs.getString("nome");
 
-            rs -> rs.next() ? new DDD(rs.getString("ddd")) : null,
-            id
-        );
+            boolean isFisica = rs.getBoolean("isFisica");
+            String documento = rs.getString(isFisica ? "cpf" : "cnpj");
+
+            int idEndereco = rs.getInt("idEndereco");
+            String numeroEndereco = rs.getString("numeroEndereco");
+            String complementoEndereco = rs.getString("complementoEndereco");
+
+            Endereco endereco = new Endereco();
+            endereco.setId(idEndereco);
+
+            EnderecoEspecifico enderecoEsp = new EnderecoEspecifico(
+                    endereco, numeroEndereco, complementoEndereco
+            );
+
+            List<Email> emails = new ArrayList<>();
+            List<Telefone> telefones = new ArrayList<>();
+
+            Pessoa pessoa = isFisica
+                    ? new PessoaFisica(nome, telefones, emails, enderecoEsp, documento)
+                    : new PessoaJuridica(nome, telefones, emails, enderecoEsp, documento);
+
+            pessoa.setIdPessoa(id);
+
+            return pessoa;
+
+        }, args);
+
+        if(pessoas.isEmpty()) return pessoas;
+
+        Map<Integer, Pessoa> pessoasPorId = new HashMap<>();
+        Integer[] ids = new Integer[pessoas.size()];
+        StringBuilder placeholders = new StringBuilder();
+
+        for (int i = 0; i < pessoas.size(); i++) {
+            Pessoa pessoa = pessoas.get(i);
+            int id = pessoa.getIdPessoa();
+            pessoasPorId.put(id, pessoa);
+            ids[i] = id;
+
+            if (i > 0) placeholders.append(", ");
+            placeholders.append("?");
+        }
+
+        adicionarEmails(pessoasPorId, ids, placeholders);
+        adicionarTelefones(pessoasPorId, ids, placeholders);
+
+        return pessoas;
     }
 
-    private DDI getDDIById(int id){
-        return jdbc.query(
+    private void adicionarEmails(Map<Integer, Pessoa>  pessoasPorId, Object[] ids, StringBuilder placeholders) {
+        jdbc.query(
 
             """
-            SELECT * FROM "DDI"
-            WHERE "idDDI" = ?;
-            """,
-
-            rs -> rs.next() ? new DDI(rs.getString("ddi")) : null,
-            id
-        );
-    }
-
-    private List<Telefone> getTelefonesByClienteId(int id) {
-        return jdbc.query(
-
-            """
-            SELECT * FROM "TelefoneCliente"
-            WHERE "idCliente" = ?;
-            """,
+            SELECT "idCliente", "endEmail"
+            FROM "EmailCliente"
+            WHERE "idCliente" IN (
+            """ + placeholders + ")",
 
             rs -> {
-                List<Telefone> telefones = new ArrayList<>();
                 while (rs.next()) {
-                    telefones.add(new Telefone(
-                            getDDDById(rs.getInt("idDDD")),
-                            getDDIById(rs.getInt("idDDI")),
+                    Pessoa pessoa = pessoasPorId.get(rs.getInt("idCliente"));
+                    if (pessoa != null) pessoa.addEmail(rs.getString("endEmail"));
+                }
+            },
+            ids
+        );
+    }
+
+    private void adicionarTelefones(Map<Integer, Pessoa>  pessoasPorId, Object[] ids, StringBuilder placeholders){
+        jdbc.query(
+
+            """
+            SELECT
+                tc."idCliente",
+                tc."nroTelefone",
+                ddd."ddd",
+                ddi."ddi"
+            FROM "TelefoneCliente" tc
+
+            LEFT JOIN "DDD" ddd
+                ON ddd."idDDD" = tc."idDDD"
+
+            LEFT JOIN "DDI" ddi
+                ON ddi."idDDI" = tc."idDDI"
+
+            WHERE tc."idCliente" IN (
+            """ + placeholders + ")",
+
+            rs -> {
+                while (rs.next()) {
+                    Pessoa pessoa = pessoasPorId.get(rs.getInt("idCliente"));
+                    if (pessoa != null) {
+                        pessoa.addTelefone(
+                            rs.getString("ddd"),
+                            rs.getString("ddi"),
                             rs.getString("nroTelefone")
-                    ));
+                        );
+                    }
                 }
-            return telefones;
-            }, id
+            },
+            ids
         );
     }
 
-    private List<Email> getEmailsByClienteId(int id) {
+    private Pessoa primeiro(List<Pessoa> pessoas) {
+        return pessoas.isEmpty() ? null : pessoas.getFirst();
+    }
+
+    @Transactional(readOnly = true)
+    public Pessoa buscarClientePorId(int id) {
+        return primeiro(buscarClientes(
+            """
+            SELECT * FROM "Cliente"
+            WHERE "idCliente" = ?
+            """,
+            id
+        ));
+    }
+
+    @Transactional(readOnly = true)
+    public Pessoa buscarClientePorCPF(String cpf) {
+        return primeiro(buscarClientes(
+            """
+            SELECT * FROM "Cliente"
+            WHERE "cpf" = ?
+            """,
+            cpf
+        ));
+    }
+
+    @Transactional(readOnly = true)
+    public Pessoa buscarClientePorCNPJ(String cnpj) {
+        return primeiro(buscarClientes(
+            """
+            SELECT * FROM "Cliente"
+            WHERE "cnpj" = ?
+            """,
+            cnpj
+        ));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Pessoa> listarClientes() {
+        return buscarClientes(
+            """
+            SELECT * FROM "Cliente"
+            """
+        );
+    }
+
+    private Boolean clienteExiste(Pessoa cliente){
+        if(cliente == null) return false;
+
+        String where = cliente.getFisica() ?
+            " \"cpf\" = ?;" :
+            " \"cnpj\" = ?;";
+
         return jdbc.query(
 
             """
-            SELECT * FROM "EmailCliente"
-            WHERE "idCliente" = ?;
+            SELECT * FROM "Cliente"
+            WHERE""" + where,
+
+            ResultSet::next,
+            cliente.getDocumento()
+        );
+    }
+
+    private void cadastrarEmails(Integer id, List<Email> emails){
+        List<Object[]> args = new ArrayList<>();
+
+        for (Email email : emails) {
+            args.add(new Object[]{
+                    id,
+                    email.getEmail()
+            });
+        }
+
+        jdbc.batchUpdate(
+                """
+                INSERT INTO "EmailCliente" ("idCliente", "endEmail")
+                VALUES (?, ?)
+                """,
+                args
+        );
+    }
+
+    // PRESSUPOE QUE TODOS OS DDD E TODOS OS DDI ESTAO ADICIONADOS NA DB
+    private void cadastrarTelefones(Integer id, List<Telefone> telefones){
+        List<Object[]> args = new ArrayList<>();
+
+        for (Telefone telefone : telefones) {
+            args.add(new Object[]{
+                    id,
+                    telefone.getNroDDD().getNroDDD(),
+                    telefone.getNroDDI().getNroDDI(),
+                    telefone.getNroFone()
+            });
+        }
+
+        jdbc.batchUpdate(
+                """
+                INSERT INTO "TelefoneCliente"
+                    ("idCliente", "idDDD", "idDDI", "nroTelefone")
+                VALUES (
+                    ?,
+                    (SELECT "idDDD" FROM "DDD" WHERE "ddd" = ?),
+                    (SELECT "idDDI" FROM "DDI" WHERE "ddi" = ?),
+                    ?
+                )
+                """,
+                args
+        );
+    }
+
+    @Transactional
+    public Pessoa cadastrarCliente(Pessoa cliente){
+        if(clienteExiste(cliente)) return cliente;
+
+        Integer idCliente = jdbc.queryForObject(
+            """
+            INSERT INTO "Cliente"
+                ("nome", "idEndereco", "numeroEndereco",
+                 "complementoEndereco", "cpf", "cnpj", "isFisica")
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            RETURNING "idCliente";
             """,
 
-            rs -> {
-                List<Email> emails = new ArrayList<>();
-                while (rs.next()) {
-                    String endereco = rs.getString("endEmail");
-                    emails.add(new Email(endereco));
-                }
-                return emails;
-            }, id
-        );
-    }
+            Integer.class,
 
-    private Pessoa build(ResultSet rs) throws SQLException {
-        int id =  rs.getInt("idCliente");
-        String nome = rs.getString("nome");
-
-        boolean isFisica = rs.getBoolean("isFisica");
-        String documentColumnName = isFisica ? "cpf" : "cnpj";
-        String documento = rs.getString(documentColumnName);
-
-        int idEndereco = rs.getInt("idEndereco");
-        String numeroEndereco = rs.getString("numeroEndereco");
-        String complementoEndereco = rs.getString("complementoEndereco");
-        Endereco endereco = new Endereco();
-        endereco.setId(idEndereco);
-        EnderecoEspecifico enderecoEsp = new EnderecoEspecifico(
-                endereco, numeroEndereco, complementoEndereco
+            cliente.getNome(),
+            cliente.getEnderecoEspecifico().getEndereco().getId(),
+            cliente.getEnderecoEspecifico().getNumeroEndereco(),
+            cliente.getEnderecoEspecifico().getComplemento(),
+            cliente.getFisica() ? cliente.getDocumento() : null,
+            cliente.getFisica() ? null : cliente.getDocumento(),
+            cliente.getFisica()
         );
 
-        List<Email> emails = getEmailsByClienteId(id);
-        List<Telefone> telefones = getTelefonesByClienteId(id);
+        cadastrarEmails(idCliente, cliente.getEmailList());
+        cadastrarTelefones(idCliente, cliente.getTelefoneList());
 
-        return isFisica ?
-            new PessoaFisica(nome, telefones, emails, enderecoEsp, documento) :
-            new PessoaJuridica(nome, telefones, emails, enderecoEsp, documento);
+        return cliente;
     }
-
-    public Pessoa getPessoaById(int id){
-        String sql = """
-        SELECT * FROM "Cliente"
-        WHERE "idCliente" = ?;
-        """;
-
-        return jdbc.query(sql, rs -> {
-            Pessoa cliente = null;
-
-            if (rs.next()) {
-
-
-                boolean isPessoaFisica = rs.getBoolean("isFisica");
-
-                if (isPessoaFisica) {
-
-                }
-
-                String nome = rs.getString("nome");
-
-
-
-            }
-            return cliente;
-        }, id);
-
-
-
-    }
-
-    public Pessoa getPessoaByDocumento(String documento){
-        return null;
-    }
-
-    public List<Pessoa> getPessoas(){
-        return null;
-    }
-
-    public boolean createPessoa(Pessoa pessoa){
-        return false;
-    }
-
 }
