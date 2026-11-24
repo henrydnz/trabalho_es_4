@@ -19,8 +19,10 @@ public class ClienteController {
     @PostMapping
     public ResponseEntity<Pessoa> cadastrarPessoa(@RequestBody Pessoa pessoa) {
         Pessoa pessoaSalva = clienteService.cadastrarPessoa(pessoa);
+
         if (pessoaSalva == null)
             return ResponseEntity.badRequest().build();
+
         return ResponseEntity.ok(pessoaSalva);
     }
 
@@ -30,6 +32,7 @@ public class ClienteController {
 
         if (pessoas == null || pessoas.isEmpty())
             return ResponseEntity.notFound().build();
+
         return ResponseEntity.ok(pessoas);
     }
 
@@ -39,6 +42,7 @@ public class ClienteController {
 
         if (pessoa == null)
             return ResponseEntity.notFound().build();
+
         return ResponseEntity.ok(pessoa);
     }
 
@@ -48,6 +52,7 @@ public class ClienteController {
 
         if (pessoa == null)
             return ResponseEntity.notFound().build();
+
         return ResponseEntity.ok(pessoa);
     }
 }
