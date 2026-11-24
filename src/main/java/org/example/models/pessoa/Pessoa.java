@@ -18,16 +18,16 @@ public abstract class Pessoa {
     protected String nome;
     protected List<Telefone> telefoneList;
     protected List<Email> emailList;
-    protected EnderecoEspecifico endereco;
+    protected EnderecoEspecifico enderecoEspecifico;
     protected Boolean isFisica;
 
     public  Pessoa() {}
 
-    public Pessoa(String nome, List<Telefone> telefoneList, List<Email> emailList, EnderecoEspecifico endereco, Boolean isFisica) {
+    public Pessoa(String nome, List<Telefone> telefoneList, List<Email> emailList, EnderecoEspecifico enderecoEspecifico, Boolean isFisica) {
         this.nome = nome;
         this.telefoneList = telefoneList;
         this.emailList = emailList;
-        this.endereco = endereco;
+        this.enderecoEspecifico = enderecoEspecifico;
         this.isFisica = isFisica;
     }
 
@@ -39,12 +39,12 @@ public abstract class Pessoa {
         this.nome = nome;
     }
 
-    public EnderecoEspecifico getEndereco() {
-        return endereco;
+    public EnderecoEspecifico getEnderecoEspecifico() {
+        return enderecoEspecifico;
     }
 
-    public void setEndereco(EnderecoEspecifico endereco) {
-        this.endereco = endereco;
+    public void setEnderecoEspecifico(EnderecoEspecifico enderecoEspecifico) {
+        this.enderecoEspecifico = enderecoEspecifico;
     }
 
     public List<Email> getEmailList() {

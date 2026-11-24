@@ -7,7 +7,7 @@ public class EnderecoEspecifico {
     private String numeroEndereco;
     private String complemento;
 
-    public Endereco getIdEndereco() {
+    public Endereco getEndereco() {
         return endereco;
     }
 
