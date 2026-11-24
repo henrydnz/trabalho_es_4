@@ -3,10 +3,16 @@ package org.example.dao;
 import org.example.models.aluguel.Aluguel;
 
 import java.time.LocalDateTime;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 
+@Repository
 public class AluguelDao {
-    AluguelDao() {}
+    private final JdbcTemplate jdbc;
+    public AluguelDao (JdbcTemplate jdbc) { this.jdbc = jdbc; }
 
     public boolean createAluguel(Aluguel aluguel) {
         return false;
@@ -24,7 +30,7 @@ public class AluguelDao {
         return null;
     }
 
-    public boolean updateNumeroPatrimonio(int aluguelId, int numeroPatrimonio) {
+    public boolean updateAddEquipamento(int aluguelId, int numeroPatrimonio) {
         return false;
     }
 
