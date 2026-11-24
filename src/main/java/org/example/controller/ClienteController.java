@@ -37,8 +37,8 @@ public class ClienteController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Pessoa> buscarClientePorDocumento(@PathVariable String id) {
-        Pessoa pessoa = clienteService.buscarPessoaPorID(id);
+    public ResponseEntity<Pessoa> buscarClientePorID(@PathVariable String id) {
+        Pessoa pessoa = clienteService.buscarClientePorID(id);
 
         if (pessoa == null)
             return ResponseEntity.notFound().build();
@@ -48,7 +48,7 @@ public class ClienteController {
 
     @GetMapping("/doc/{doc}")
     public ResponseEntity<Pessoa> buscarClientePorDocumento(@PathVariable String doc) {
-        Pessoa pessoa = clienteService.buscarPessoaPorDocumento(doc);
+        Pessoa pessoa = clienteService.buscarClientePorDocumento(doc);
 
         if (pessoa == null)
             return ResponseEntity.notFound().build();
