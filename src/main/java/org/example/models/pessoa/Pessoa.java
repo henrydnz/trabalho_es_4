@@ -31,45 +31,27 @@ public abstract class Pessoa {
         this.isFisica = isFisica;
     }
 
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public EnderecoEspecifico getEnderecoEspecifico() {
-        return enderecoEspecifico;
-    }
-
-    public void setEnderecoEspecifico(EnderecoEspecifico enderecoEspecifico) {
-        this.enderecoEspecifico = enderecoEspecifico;
-    }
-
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
+    public EnderecoEspecifico getEnderecoEspecifico() { return enderecoEspecifico; }
+    public void setEnderecoEspecifico(EnderecoEspecifico enderecoEspecifico) { this.enderecoEspecifico = enderecoEspecifico; }
     public List<Email> getEmailList() {
         return emailList;
     }
-
     public void setEmailList(List<Email> emailList) {
         this.emailList = emailList;
     }
-
     public List<Telefone> getTelefoneList() {
         return telefoneList;
     }
-
     public void setTelefoneList(List<Telefone> telefoneList) {
         this.telefoneList = telefoneList;
     }
-
     public abstract String getDocumento();
     public abstract void setDocumento(String documento);
-
     public Boolean getFisica() {
         return isFisica;
     }
-
     public void setFisica(Boolean fisica) {
         isFisica = fisica;
     }

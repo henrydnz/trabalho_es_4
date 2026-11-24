@@ -46,7 +46,7 @@
 
         <dependency>
             <groupId>org.models</groupId>
-            <artifactId>enderecoEspecifico-models</artifactId>
+            <artifactId>endereco-models</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 

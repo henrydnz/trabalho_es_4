@@ -1,17 +1,15 @@
 package org.example.models.pessoa;
 
 public class DDD {
-    private int nroDDD;
+    private String nroDDD;
 
-    public DDD(int nroDDD) {
+    public DDD(String nroDDD) {
         this.nroDDD = nroDDD;
     }
-
-    public int getNroDDD() {
+    public String getNroDDD() {
         return nroDDD;
     }
-
-    public void setNroDDD(int nroDDD) {
+    public void setNroDDD(String nroDDD) {
         this.nroDDD = nroDDD;
     }
 }

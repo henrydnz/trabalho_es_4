@@ -15,23 +15,18 @@ public class Telefone {
     public DDD getNroDDD() {
         return nroDDD;
     }
-
     public void setNroDDD(DDD nroDDD) {
         this.nroDDD = nroDDD;
     }
-
     public String getNroFone() {
         return nroFone;
     }
-
     public void setNroFone(String nroFone) {
         this.nroFone = nroFone;
     }
-
     public DDI getNroDDI() {
         return nroDDI;
     }
-
     public void setNroDDI(DDI nroDDI) {
         this.nroDDI = nroDDI;
     }

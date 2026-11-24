@@ -7,26 +7,17 @@ public class EnderecoEspecifico {
     private String numeroEndereco;
     private String complemento;
 
-    public Endereco getEndereco() {
-        return endereco;
-    }
-
-    public void setEndereco(Endereco endereco) {
+    public EnderecoEspecifico(Endereco endereco,  String numeroEndereco, String complemento) {
         this.endereco = endereco;
-    }
-
-    public String getNumeroEndereco() {
-        return numeroEndereco;
-    }
-
-    public void setNumeroEndereco(String numeroEndereco) {
         this.numeroEndereco = numeroEndereco;
+        this.complemento = complemento;
     }
 
-    public String getComplemento() {
-        return complemento;
-    }
-
+    public Endereco getEndereco() { return endereco; }
+    public void setEndereco(Endereco endereco) { this.endereco = endereco; }
+    public String getNumeroEndereco() { return numeroEndereco; }
+    public void setNumeroEndereco(String numeroEndereco) { this.numeroEndereco = numeroEndereco; }
+    public String getComplemento() { return complemento; }
     public void setComplemento(String complemento) {
         this.complemento = complemento;
     }

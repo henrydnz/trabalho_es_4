@@ -1,17 +1,13 @@
 package org.example.models.pessoa;
 
 public class DDI {
-    private int nroDDI;
+    private String nroDDI;
 
-    public DDI(int nroDDI) {
+    public DDI(String nroDDI) {
         this.nroDDI = nroDDI;
     }
-
-    public int getNroDDI() {
+    public String getNroDDI() {
         return nroDDI;
     }
-
-    public void setNroDDD(int nroDDI) {
-        this.nroDDI = nroDDI;
-    }
+    public void setNroDDI(String nroDDI) { this.nroDDI =  nroDDI; }
 }
