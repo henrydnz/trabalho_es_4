@@ -1,0 +1,612 @@
+
+.alugueis-pagina {
+  max-width: 1100px;
+  min-height: 80vh;
+  margin: 45px auto 80px;
+  padding: 0 25px;
+}
+
+.alugueis-cabecalho {
+  margin-bottom: 35px;
+}
+
+.alugueis-cabecalho h1 {
+  font-family: "Outfit", sans-serif;
+  font-size: clamp(32px, 4vw, 46px);
+  letter-spacing: -1px;
+  color: #45062e;
+  margin: 12px 0;
+}
+
+.alugueis-cabecalho p {
+  color: #725a68;
+  line-height: 1.7;
+}
+
+.alugueis-bloco {
+  margin-bottom: 25px;
+  padding: 30px;
+  border: 1px solid #ead8e3;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 8px 24px #45062e08;
+}
+
+.alugueis-bloco h2,
+.alugueis-lista-cabecalho h2 {
+  font-family: "Outfit", sans-serif;
+  font-size: 26px;
+  color: #45062e;
+  margin: 0 0 12px;
+}
+
+.alugueis-bloco > p {
+  margin: 0 0 25px;
+  color: #725a68;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.alugueis-busca {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 20px;
+}
+
+.alugueis-pagina label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #45062e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.alugueis-pagina input,
+.alugueis-pagina select {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  border: 1px solid #d5becd;
+  border-radius: 10px;
+  background: #fffbfd;
+  color: #45062e;
+  outline: none;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.alugueis-pagina input:focus,
+.alugueis-pagina select:focus {
+  border-color: #7f055f;
+  box-shadow: 0 0 0 3px #7f055f18;
+}
+
+.alugueis-erro {
+  margin: 20px 0 0 !important;
+  padding: 15px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c !important;
+  font-size: 14px;
+}
+
+.alugueis-identificacao {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin: 35px 0 25px;
+}
+
+.alugueis-identificacao span {
+  color: #7f055f;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.alugueis-identificacao h2 {
+  font-family: "Outfit", sans-serif;
+  font-size: 28px;
+  color: #45062e;
+  margin: 8px 0;
+}
+
+.alugueis-identificacao p {
+  color: #725a68;
+  margin: 0;
+}
+
+.alugueis-indicadores {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 15px;
+  margin-bottom: 40px;
+}
+
+.alugueis-indicador {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid #ead8e3;
+  border-radius: 16px;
+  background: white;
+  color: #45062e;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.alugueis-indicador:hover {
+  transform: translateY(-3px);
+}
+
+.alugueis-indicador.ativo {
+  border-color: #7f055f;
+  box-shadow: 0 0 0 2px #7f055f18;
+}
+
+.alugueis-indicador span {
+  color: #725a68;
+  font-size: 14px;
+}
+
+.alugueis-indicador strong {
+  font-family: "Outfit", sans-serif;
+  font-size: 36px;
+}
+
+.alugueis-indicador.solicitado strong {
+  color: #a16207;
+}
+
+.alugueis-indicador.em-locacao strong {
+  color: #1d4ed8;
+}
+
+.alugueis-indicador.encerrado strong {
+  color: #18794e;
+}
+
+.alugueis-lista-cabecalho {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.alugueis-lista-cabecalho p {
+  color: #725a68;
+  font-size: 14px;
+  margin: 0;
+}
+
+.alugueis-filtro {
+  min-width: 180px;
+}
+
+.alugueis-lista {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.alugueis-card {
+  padding: 25px;
+  border: 1px solid #ead8e3;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 8px 24px #45062e08;
+}
+
+.alugueis-card-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.alugueis-pedido {
+  color: #7f055f;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.alugueis-card h3 {
+  font-family: "Outfit", sans-serif;
+  color: #45062e;
+  font-size: 23px;
+  margin: 8px 0 0;
+}
+
+.alugueis-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: 30px;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.alugueis-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.alugueis-status.solicitado {
+  background: #fef3c7;
+  color: #a16207;
+}
+
+.alugueis-status.em-locacao {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.alugueis-status.encerrado {
+  background: #dcfce7;
+  color: #18794e;
+}
+
+.alugueis-card-dados {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  padding: 20px 0;
+  border-top: 1px solid #f0e4eb;
+  border-bottom: 1px solid #f0e4eb;
+}
+
+.alugueis-card-dados div,
+.alugueis-card-rodape > div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.alugueis-card-dados span,
+.alugueis-card-rodape span {
+  color: #725a68;
+  font-size: 13px;
+}
+
+.alugueis-card-dados strong {
+  color: #45062e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.alugueis-card-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 22px;
+}
+
+.alugueis-card-rodape strong {
+  color: #7f055f;
+  font-size: 23px;
+}
+
+.alugueis-botao-secundario {
+  padding: 12px 18px;
+  border: 1px solid #7f055f;
+  border-radius: 10px;
+  background: transparent;
+  color: #7f055f;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.alugueis-botao-secundario:hover {
+  background: #f8e9ee;
+}
+
+.alugueis-vazio {
+  padding: 55px 25px;
+  border: 1px dashed #d5becd;
+  border-radius: 18px;
+  background: white;
+  text-align: center;
+}
+
+.alugueis-vazio-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 65px;
+  height: 65px;
+  border-radius: 18px;
+  background: #f8e9ee;
+  color: #7f055f;
+  font-size: 30px;
+}
+
+.alugueis-vazio h3 {
+  font-family: "Outfit", sans-serif;
+  color: #45062e;
+  font-size: 25px;
+  margin: 20px 0 10px;
+}
+
+.alugueis-vazio p {
+  color: #725a68;
+  margin-bottom: 25px;
+}
+
+.alugueis-vazio button {
+  margin: 0 auto;
+}
+
+/* DETALHES DO ALUGUEL */
+
+.detalhes-voltar {
+  margin-bottom: 25px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #7f055f;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.detalhes-cabecalho {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.detalhes-etapas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 35px;
+}
+
+.detalhes-etapa {
+  position: relative;
+  text-align: center;
+  padding: 0 10px;
+}
+
+.detalhes-etapa:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 22px;
+  left: calc(50% + 30px);
+  width: calc(100% - 60px);
+  height: 3px;
+  background: #ead8e3;
+}
+
+.detalhes-etapa.concluida:not(.atual)::after {
+  background: #7f055f;
+}
+
+.detalhes-etapa-numero {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 15px;
+  border: 2px solid #ead8e3;
+  border-radius: 50%;
+  background: #f8f3f6;
+  color: #9b8793;
+  font-weight: 600;
+}
+
+.detalhes-etapa.concluida .detalhes-etapa-numero {
+  border-color: #7f055f;
+  background: #7f055f;
+  color: white;
+}
+
+.detalhes-etapa.atual .detalhes-etapa-numero {
+  box-shadow: 0 0 0 5px #7f055f18;
+}
+
+.detalhes-etapa h3 {
+  font-family: "Outfit", sans-serif;
+  font-size: 18px;
+  color: #725a68;
+  margin: 10px 0 5px;
+}
+
+.detalhes-etapa.concluida h3 {
+  color: #45062e;
+}
+
+.detalhes-etapa p {
+  color: #725a68;
+  font-size: 13px;
+  margin: 5px 0;
+}
+
+.detalhes-etapa small {
+  color: #9b8793;
+  font-size: 12px;
+}
+
+.detalhes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 25px;
+  margin-top: 25px;
+}
+
+.detalhes-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detalhes-campo span {
+  color: #725a68;
+  font-size: 13px;
+}
+
+.detalhes-campo strong {
+  color: #45062e;
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.detalhes-aviso {
+  margin-top: 25px;
+  padding: 18px;
+  border: 1px dashed #d5becd;
+  border-radius: 12px;
+  background: #fffbfd;
+  color: #725a68;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.detalhes-equipamento {
+  margin-top: 25px;
+  padding: 20px;
+  border: 1px solid #ead8e3;
+  border-radius: 12px;
+  background: #fffbfd;
+}
+
+.detalhes-equipamento h3 {
+  font-family: "Outfit", sans-serif;
+  color: #45062e;
+  margin: 0;
+}
+
+.detalhes-financeiro {
+  padding: 30px;
+  border: 1px solid #e5a4cb;
+  border-radius: 20px;
+  background: #f8e9ee;
+}
+
+.detalhes-financeiro h2 {
+  font-family: "Outfit", sans-serif;
+  color: #45062e;
+  font-size: 26px;
+  margin: 0 0 20px;
+}
+
+.detalhes-financeiro-linha {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 0;
+  color: #725a68;
+}
+
+.detalhes-financeiro-linha strong {
+  color: #45062e;
+  text-align: right;
+}
+
+.detalhes-total {
+  margin-top: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #e5a4cb;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.detalhes-total strong {
+  color: #7f055f;
+}
+
+.detalhes-financeiro p {
+  margin: 20px 0 0;
+  color: #725a68;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.detalhes-acoes {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 30px;
+}
+
+@media (max-width: 900px) {
+  .alugueis-lista {
+    grid-template-columns: 1fr;
+  }
+
+  .alugueis-indicadores {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .alugueis-pagina {
+    margin-top: 30px;
+    padding: 0 16px;
+  }
+
+  .alugueis-bloco,
+  .alugueis-card,
+  .detalhes-financeiro {
+    padding: 20px;
+  }
+
+  .alugueis-busca,
+  .detalhes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .alugueis-identificacao,
+  .alugueis-lista-cabecalho {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .alugueis-indicador {
+    padding: 18px;
+  }
+
+  .alugueis-card-topo {
+    flex-wrap: wrap;
+  }
+
+  .alugueis-card-rodape {
+    flex-wrap: wrap;
+  }
+
+  .detalhes-etapa h3 {
+    font-size: 14px;
+  }
+
+  .detalhes-etapa p,
+  .detalhes-etapa small {
+    font-size: 11px;
+  }
+
+  .detalhes-total {
+    font-size: 15px;
+  }
+}

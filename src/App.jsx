@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Enderecos from "./pages/Enderecos";
 import MeuCadastro from "./pages/MeuCadastro";
 import NovoAluguel from "./pages/NovoAluguel";
+import MeusAlugueis from "./pages/MeusAlugueis";
 import RegistrarEntrega from "./pages/RegistrarEntrega";
 import RegistrarDevolucao from "./pages/RegistrarDevolucao";
 
@@ -121,7 +122,7 @@ function App() {
         return <PaginaProvisoria titulo="Equipamentos" />;
 
       case "Meus Aluguéis":
-        return <PaginaProvisoria titulo="Meus Aluguéis" />;
+        return <MeusAlugueis setPagina={setPagina} />;
 
       case "Aluguéis":
         return <PaginaProvisoria titulo="Aluguéis" />;
