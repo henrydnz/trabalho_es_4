@@ -246,8 +246,10 @@ public class ClienteDao {
     public Pessoa cadastrarCliente(Pessoa cliente){
         Integer idCliente = clienteExiste(cliente);
 
-        if(idCliente != null)
+        if(idCliente != null){
             cliente.setIdPessoa(idCliente);
+            return cliente;
+        }
 
         idCliente = jdbc.queryForObject(
             """
