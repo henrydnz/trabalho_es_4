@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 
 import DetalhesAluguel from "./DetalhesAluguel";
 
-import {
-  obterAlugueis,
-} from "../services/alugueisService";
+import { obterAlugueis } from "../services/alugueisService";
 
 import "../styles/alugueis.css";
 
@@ -157,48 +155,51 @@ function Alugueis({ ator, setPagina }) {
     (aluguel) => {
       const termo = normalizarTexto(busca);
 
-      const buscaNumerica = /^[\d.\-/#\s]+$/.test(
-        busca.trim()
-      );
-
       const numerosBusca = somenteNumeros(busca);
 
-      const numeroAluguel = String(
-        aluguel.idAluguel ?? ""
-      );
+      const buscaPorId = /^#?\d+$/.test(termo);
 
-      const numeroFormatado =
-        numeroAluguel.padStart(4, "0");
-
-      const correspondeBusca =
-        termo === "" ||
-
-        normalizarTexto(numeroAluguel)
-          .includes(termo) ||
-
-        normalizarTexto(`#${numeroFormatado}`)
-          .includes(termo) ||
-
-        normalizarTexto(aluguel.nomeCliente)
-          .includes(termo) ||
-
-        normalizarTexto(aluguel.documentoCliente)
-          .includes(termo) ||
-
-        normalizarTexto(aluguel.tipoEquipamento)
-          .includes(termo) ||
-
-        normalizarTexto(
-          aluguel.equipamento?.numeroPatrimonio
-        ).includes(termo) ||
-
+      const buscaPorDocumento =
+        /^[\d./-]+$/.test(termo) &&
         (
-          buscaNumerica &&
-          numerosBusca.length > 0 &&
-          somenteNumeros(
-            aluguel.documentoCliente
-          ).includes(numerosBusca)
+          numerosBusca.length === 11 ||
+          numerosBusca.length === 14
         );
+
+      let correspondeBusca = false;
+
+      if (termo === "") {
+        correspondeBusca = true;
+
+      } else if (buscaPorDocumento) {
+        correspondeBusca =
+          somenteNumeros(aluguel.documentoCliente) ===
+          numerosBusca;
+
+      } else if (buscaPorId) {
+        correspondeBusca =
+          aluguel.idAluguel != null &&
+          Number(aluguel.idAluguel) ===
+          Number(numerosBusca);
+
+      } else if (termo.startsWith("patrimonio ")) {
+        const patrimonio = termo
+          .replace("patrimonio ", "")
+          .trim();
+
+        correspondeBusca =
+          String(
+            aluguel.equipamento?.numeroPatrimonio ?? ""
+          ) === patrimonio;
+
+      } else {
+        correspondeBusca =
+          normalizarTexto(aluguel.nomeCliente)
+            .includes(termo) ||
+
+          normalizarTexto(aluguel.tipoEquipamento)
+            .includes(termo);
+      }
 
       const correspondeSituacao =
         filtro === "Todos" ||
@@ -316,8 +317,9 @@ function Alugueis({ ator, setPagina }) {
 
             <p>
               Pesquise pelo número do aluguel, nome do
-              cliente, CPF, CNPJ, tipo de equipamento ou
-              número de patrimônio.
+              cliente, CPF, CNPJ ou tipo de equipamento.
+              Para pesquisar um equipamento físico,
+              informe "patrimônio" seguido do número.
             </p>
 
             <div className="alugueis-busca">
@@ -417,15 +419,7 @@ function Alugueis({ ator, setPagina }) {
                   : "Nenhum aluguel corresponde aos filtros informados."}
               </p>
 
-              {alugueis.length === 0 ? (
-                <button
-                  type="button"
-                  className="alugueis-botao-secundario"
-                  onClick={atualizarLista}
-                >
-                  Atualizar lista
-                </button>
-              ) : (
+              {alugueis.length > 0 && (
                 <button
                   type="button"
                   className="alugueis-botao-secundario"
@@ -551,16 +545,6 @@ function Alugueis({ ator, setPagina }) {
               ))}
             </div>
           )}
-
-          <div className="detalhes-acoes">
-            <button
-              type="button"
-              className="alugueis-botao-secundario"
-              onClick={atualizarLista}
-            >
-              Atualizar aluguéis
-            </button>
-          </div>
         </>
       )}
     </section>
