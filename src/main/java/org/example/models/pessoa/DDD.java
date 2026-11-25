@@ -5,6 +5,8 @@ import java.io.Serializable;
 public class DDD implements Serializable {
     private String nroDDD;
 
+    public DDD() {}
+
     public DDD(String nroDDD) {
         this.nroDDD = nroDDD;
     }

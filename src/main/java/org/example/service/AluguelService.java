@@ -25,7 +25,7 @@ public class AluguelService {
     }
 
     public Aluguel cadastrarAluguel(Aluguel aluguel) {
-        if(aluguel == null
+        if (aluguel == null
                 || aluguel.getCliente() == null
                 || aluguel.getDataPedido() == null
                 || aluguel.getDataHoraInicioLocacao() == null
@@ -35,14 +35,16 @@ public class AluguelService {
                 || aluguel.getEnderecoEspecifico() == null
                 || aluguel.getEnderecoEspecifico().getComplemento() == null
                 || aluguel.getEnderecoEspecifico().getNumeroEndereco() == null
-                || aluguel.getEnderecoEspecifico().getEndereco() == null)
+                || aluguel.getEnderecoEspecifico().getEndereco() == null) {
             return null;
+        }
 
         aluguel.getEnderecoEspecifico().setComplemento(Utils.formatarStr(aluguel.getEnderecoEspecifico().getComplemento()));
         aluguel.getEnderecoEspecifico().setNumeroEndereco(Utils.formatarStrSv(aluguel.getEnderecoEspecifico().getNumeroEndereco()));
 
-        if(!Utils.verificarEnderecoEspecifico(aluguel.getEnderecoEspecifico()))
+        if (!Utils.verificarEnderecoEspecifico(aluguel.getEnderecoEspecifico())) {
             return null;
+        }
 
         long dias = java.time.temporal.ChronoUnit.DAYS.between(
                 aluguel.getDataHoraInicioLocacao().toLocalDate(),
@@ -53,7 +55,7 @@ public class AluguelService {
         Endereco endereco = null;
 
         try {
-            RestClient restClient = RestClient.create("http://localhost:8081/api/enderecos");
+            RestClient restClient = RestClient.create("http://localhost:8080/api/enderecos");
             endereco = restClient.post()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(aluguel.getEnderecoEspecifico().getEndereco())
@@ -64,19 +66,22 @@ public class AluguelService {
             return null;
         }
 
-        if (endereco == null || endereco.getId() == null)
+        if (endereco == null || endereco.getId() == null) {
             return null;
+        }
 
         aluguel.getEnderecoEspecifico().setEndereco(endereco);
 
         Pessoa cliente = clienteService.cadastrarCliente(aluguel.getCliente());
 
-        if(cliente == null)
+        if (cliente == null) {
             return null;
+        }
 
         aluguel.setCliente(cliente);
 
-        return aluguelDao.cadastrarAluguel(aluguel);
+        Aluguel salvo = aluguelDao.cadastrarAluguel(aluguel);
+        return salvo;
     }
 
     public Aluguel registrarEntregaAluguel(Integer id, LocalDateTime dtEntrega, Integer idEquipamento) {

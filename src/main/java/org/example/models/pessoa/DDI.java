@@ -5,6 +5,8 @@ import java.io.Serializable;
 public class DDI implements Serializable {
     private String nroDDI;
 
+    public DDI() {}
+
     public DDI(String nroDDI) {
         this.nroDDI = nroDDI;
     }

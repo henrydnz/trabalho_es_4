@@ -8,6 +8,7 @@ public class Telefone implements Serializable {
 
     private String nroFone;
 
+    public Telefone() {}
     public Telefone(DDD nroDDD, DDI nroDDI, String nroFone) {
         this.nroDDD = nroDDD;
         this.nroDDI = nroDDI;

@@ -6,6 +6,7 @@ public class Modelo implements Serializable {
     private String nome;
     private Fabricante fabricante;
 
+    public Modelo() {}
     public Modelo(String nome, Fabricante fabricante) {
         this.nome = nome;
         this.fabricante = fabricante;

@@ -5,6 +5,7 @@ import java.io.Serializable;
 public class Fabricante implements Serializable {
     private String nome;
 
+    public Fabricante() {}
     public Fabricante(String nome) {
         this.nome = nome;
     }

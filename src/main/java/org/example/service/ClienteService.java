@@ -20,25 +20,28 @@ public class ClienteService {
         this.clienteDao = clienteDao;
     }
 
-    public Pessoa cadastrarCliente(Pessoa cliente){
-        if(cliente == null){
+    public Pessoa cadastrarCliente(Pessoa cliente) {
+        if (cliente == null) {
             return null;
         }
 
-        if(cliente.getNome() ==  null
-                || cliente.getFisica() ==  null
+        if (cliente.getNome() == null
+                || cliente.getFisica() == null
                 || cliente.getEmailList() == null
                 || cliente.getTelefoneList() == null
                 || cliente.getDocumento() == null
                 || cliente.getEnderecoEspecifico() == null
                 || cliente.getEnderecoEspecifico().getEndereco() == null
-                || cliente.getEnderecoEspecifico().getNumeroEndereco() == null){
+                || cliente.getEnderecoEspecifico().getNumeroEndereco() == null) {
             return null;
         }
 
-         for (Email email : cliente.getEmailList()) {
-             email.setEmail(Utils.formatarStrSv(email.getEmail()));
-         }
+        for (Email email : cliente.getEmailList()) {
+            if (email == null) {
+                return null;
+            }
+            email.setEmail(Utils.formatarStrSv(email.getEmail()));
+        }
 
         for (Telefone telefone : cliente.getTelefoneList()) {
             if (telefone == null || telefone.getNroDDD() == null || telefone.getNroDDI() == null) {
@@ -49,23 +52,16 @@ public class ClienteService {
             telefone.getNroDDI().setNroDDI(Utils.formatarStrNum(telefone.getNroDDI().getNroDDI()));
         }
 
-         cliente.setDocumento(Utils.formatarStrNum(cliente.getDocumento()));
-         cliente.setNome(Utils.formatarStrSv(cliente.getNome()));
+        cliente.setDocumento(Utils.formatarStrNum(cliente.getDocumento()));
+        cliente.setNome(Utils.formatarStrSv(cliente.getNome()));
 
-         cliente.getEnderecoEspecifico().setComplemento(Utils.formatarStr(cliente.getEnderecoEspecifico().getComplemento()));
-         cliente.getEnderecoEspecifico().setNumeroEndereco(Utils.formatarStrSv(cliente.getEnderecoEspecifico().getNumeroEndereco()));
-
-        if (!Utils.verificarTelefones(cliente.getTelefoneList())
-                || !Utils.verificarEmails(cliente.getEmailList())
-                || !Utils.verificarDocumento(cliente.getFisica(), cliente.getDocumento())
-                || !Utils.verificarEnderecoEspecifico(cliente.getEnderecoEspecifico())
-                || !Utils.verificarNome(cliente.getFisica(), cliente.getNome()))
-            return null;
+        cliente.getEnderecoEspecifico().setComplemento(Utils.formatarStr(cliente.getEnderecoEspecifico().getComplemento()));
+        cliente.getEnderecoEspecifico().setNumeroEndereco(Utils.formatarStrSv(cliente.getEnderecoEspecifico().getNumeroEndereco()));
 
         Endereco endereco = null;
 
         try {
-            RestClient restClient = RestClient.create("http://localhost:8081/api/enderecos");
+            RestClient restClient = RestClient.create("http://localhost:8080/api/enderecos");
             endereco = restClient.post()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(cliente.getEnderecoEspecifico().getEndereco())
@@ -76,15 +72,15 @@ public class ClienteService {
             return null;
         }
 
-         if (endereco == null || endereco.getId() == null)
-             return null;
+        if (endereco == null || endereco.getId() == null) {
+            return null;
+        }
 
-         cliente.getEnderecoEspecifico().setEndereco(endereco);
+        cliente.getEnderecoEspecifico().setEndereco(endereco);
 
-
-        return clienteDao.cadastrarCliente(cliente);
+        Pessoa salvo = clienteDao.cadastrarCliente(cliente);
+        return salvo;
     }
-
     public List<Pessoa> listarClientes() {
         return clienteDao.listarClientes();
     }
