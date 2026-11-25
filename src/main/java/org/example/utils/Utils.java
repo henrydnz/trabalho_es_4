@@ -34,7 +34,9 @@ public class Utils {
             if (telefone == null
                     || telefone.getNroFone() == null
                     || telefone.getNroDDD() == null
-                    || telefone.getNroDDI() == null) {
+                    || telefone.getNroDDD().getNroDDD() == null
+                    || telefone.getNroDDI() == null
+                    || telefone.getNroDDI().getNroDDI() == null) {
                 return false;
             }
 

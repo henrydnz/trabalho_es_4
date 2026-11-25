@@ -12,6 +12,8 @@ import org.springframework.web.client.RestClient;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static java.lang.Double.max;
+
 @Service
 public class AluguelService {
     private final AluguelDao aluguelDao;
@@ -26,6 +28,7 @@ public class AluguelService {
         if(aluguel == null
                 || aluguel.getCliente() == null
                 || aluguel.getDataPedido() == null
+                || aluguel.getDataHoraInicioLocacao() == null
                 || aluguel.getDataHoraFimLocacao() == null
                 || !aluguel.getDataHoraFimLocacao().isAfter(aluguel.getDataHoraInicioLocacao())
                 || aluguel.getTipoEquipamentoSolicitado() == null
@@ -45,7 +48,7 @@ public class AluguelService {
                 aluguel.getDataHoraInicioLocacao().toLocalDate(),
                 aluguel.getDataHoraFimLocacao().toLocalDate());
 
-        aluguel.setValorTotal(dias * aluguel.getTipoEquipamentoSolicitado().getValorDiaria());
+        aluguel.setValorTotal(max(1, dias * aluguel.getTipoEquipamentoSolicitado().getValorDiaria()));
 
         Endereco endereco = null;
 
@@ -66,7 +69,7 @@ public class AluguelService {
 
         aluguel.getEnderecoEspecifico().setEndereco(endereco);
 
-        Pessoa cliente = clienteService.cadastrarPessoa(aluguel.getCliente());
+        Pessoa cliente = clienteService.cadastrarCliente(aluguel.getCliente());
 
         if(cliente == null)
             return null;

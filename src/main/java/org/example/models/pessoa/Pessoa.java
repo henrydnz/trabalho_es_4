@@ -3,6 +3,7 @@ package org.example.models.pessoa;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.io.Serializable;
 import java.util.List;
 
 @JsonTypeInfo(
@@ -14,7 +15,7 @@ import java.util.List;
         @JsonSubTypes.Type(value = PessoaFisica.class, name = "true"),
         @JsonSubTypes.Type(value = PessoaJuridica.class, name = "false")
 })
-public abstract class Pessoa {
+public abstract class Pessoa implements Serializable {
     protected Integer idPessoa;
     protected String nome;
     protected List<Telefone> telefoneList;

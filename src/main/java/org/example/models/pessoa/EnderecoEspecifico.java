@@ -2,7 +2,9 @@ package org.example.models.pessoa;
 
 import org.models.Endereco;
 
-public class EnderecoEspecifico {
+import java.io.Serializable;
+
+public class EnderecoEspecifico implements Serializable {
     private Endereco endereco;
     private String numeroEndereco;
     private String complemento;

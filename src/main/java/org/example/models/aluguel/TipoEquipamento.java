@@ -1,6 +1,8 @@
 package org.example.models.aluguel;
 
-public class TipoEquipamento {
+import java.io.Serializable;
+
+public class TipoEquipamento implements Serializable {
     private String nome;
     private Double valorDiaria;
 

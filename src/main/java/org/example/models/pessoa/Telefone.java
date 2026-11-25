@@ -1,6 +1,8 @@
 package org.example.models.pessoa;
 
-public class Telefone {
+import java.io.Serializable;
+
+public class Telefone implements Serializable {
     private DDD nroDDD;
     private DDI nroDDI;
 
