@@ -81,25 +81,68 @@ public class ClienteService {
         Pessoa salvo = clienteDao.cadastrarCliente(cliente);
         return salvo;
     }
+
     public List<Pessoa> listarClientes() {
-        return clienteDao.listarClientes();
-    }
-
-    public Pessoa buscarClientePorID(Integer id){
-        return clienteDao.buscarClientePorID(id);
-    }
-
-    public Pessoa buscarClientePorDocumento(String documento){
-        if(documento == null || documento.isEmpty())
+        List<Pessoa> clientes = clienteDao.listarClientes();
+        if (clientes == null) {
             return null;
+        }
+
+        for (Pessoa cliente : clientes) {
+            preencherEndereco(cliente);
+        }
+
+        return clientes;
+    }
+
+    public Pessoa buscarClientePorID(Integer id) {
+        if (id == null) {
+            return null;
+        }
+
+        Pessoa cliente = clienteDao.buscarClientePorID(id);
+        return preencherEndereco(cliente);
+    }
+
+    public Pessoa buscarClientePorDocumento(String documento) {
+        if (documento == null || documento.isEmpty()) {
+            return null;
+        }
 
         String doc = Utils.formatarStrNum(documento);
+        Pessoa cliente = (doc.length() == 11)
+                ? clienteDao.buscarClientePorCPF(doc)
+                : clienteDao.buscarClientePorCNPJ(doc);
 
-        boolean isFisica = doc.length() == 11;
+        return preencherEndereco(cliente);
+    }
 
-        if(isFisica)
-            return clienteDao.buscarClientePorCPF(doc);
+    private Pessoa preencherEndereco(Pessoa cliente) {
+        if (cliente == null) {
+            return null;
+        }
 
-        return clienteDao.buscarClientePorCNPJ(doc);
+        if (cliente.getEnderecoEspecifico() == null
+                || cliente.getEnderecoEspecifico().getEndereco() == null
+                || cliente.getEnderecoEspecifico().getEndereco().getId() == null) {
+            if (cliente.getEnderecoEspecifico() != null) {
+                cliente.getEnderecoEspecifico().setEndereco(null);
+            }
+            return cliente;
+        }
+
+        try {
+            RestClient restClient = RestClient.create("http://localhost:8080/api/enderecos");
+            Endereco endereco = restClient.get()
+                    .uri("/busca/id/{id}", cliente.getEnderecoEspecifico().getEndereco().getId())
+                    .retrieve()
+                    .body(Endereco.class);
+
+            cliente.getEnderecoEspecifico().setEndereco(endereco);
+        } catch (Exception e) {
+            cliente.getEnderecoEspecifico().setEndereco(null);
+        }
+
+        return cliente;
     }
 }

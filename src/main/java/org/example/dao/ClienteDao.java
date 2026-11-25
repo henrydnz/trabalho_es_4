@@ -188,7 +188,7 @@ public class ClienteDao {
             WHERE""" + where,
 
             rs -> {
-                if(rs.next()) return rs.getInt("idPessoa");
+                if(rs.next()) return rs.getInt("idCliente");
                 return null;
             },
             cliente.getDocumento()
@@ -246,8 +246,10 @@ public class ClienteDao {
     public Pessoa cadastrarCliente(Pessoa cliente){
         Integer idCliente = clienteExiste(cliente);
 
-        if(idCliente != null)
+        if(idCliente != null) {
             cliente.setIdPessoa(idCliente);
+            return cliente;
+        }
 
         idCliente = jdbc.queryForObject(
             """

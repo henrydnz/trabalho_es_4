@@ -105,15 +105,75 @@ public class AluguelService {
     }
 
     public List<Aluguel> listarAlugueis() {
-        return aluguelDao.listarAlugueis();
+        List<Aluguel> alugueis = aluguelDao.listarAlugueis();
+        if (alugueis == null) {
+            return null;
+        }
+
+        for (Aluguel aluguel : alugueis) {
+            preencherDadosExternos(aluguel);
+        }
+
+        return alugueis;
     }
 
     public Aluguel buscarAluguelPorID(Integer id) {
-        return aluguelDao.buscarAluguelPorID(id);
+        if (id == null) {
+            return null;
+        }
+
+        Aluguel aluguel = aluguelDao.buscarAluguelPorID(id);
+        return preencherDadosExternos(aluguel);
     }
 
     public List<Aluguel> buscarAlugueisPorIDCliente(Integer id) {
-        return aluguelDao.buscarAlugueisPorIDCliente(id);
+        if (id == null) {
+            return null;
+        }
+
+        List<Aluguel> alugueis = aluguelDao.buscarAlugueisPorIDCliente(id);
+        if (alugueis == null) {
+            return null;
+        }
+
+        for (Aluguel aluguel : alugueis) {
+            preencherDadosExternos(aluguel);
+        }
+
+        return alugueis;
     }
 
+    private Aluguel preencherDadosExternos(Aluguel aluguel) {
+        if (aluguel == null) {
+            return null;
+        }
+
+        if (aluguel.getEnderecoEspecifico() != null) {
+            if (aluguel.getEnderecoEspecifico().getEndereco() == null
+                    || aluguel.getEnderecoEspecifico().getEndereco().getId() == null) {
+                aluguel.getEnderecoEspecifico().setEndereco(null);
+            } else {
+                try {
+                    RestClient restClient = RestClient.create("http://localhost:8080/api/enderecos");
+                    Endereco endereco = restClient.get()
+                            .uri("/busca/id/{id}", aluguel.getEnderecoEspecifico().getEndereco().getId())
+                            .retrieve()
+                            .body(Endereco.class);
+
+                    aluguel.getEnderecoEspecifico().setEndereco(endereco);
+                } catch (Exception e) {
+                    aluguel.getEnderecoEspecifico().setEndereco(null);
+                }
+            }
+        }
+
+        if (aluguel.getCliente() != null && aluguel.getCliente().getIdPessoa() > 0) {
+            Pessoa clienteCompleto = clienteService.buscarClientePorID(aluguel.getCliente().getIdPessoa());
+            if (clienteCompleto != null) {
+                aluguel.setCliente(clienteCompleto);
+            }
+        }
+
+        return aluguel;
+    }
 }
