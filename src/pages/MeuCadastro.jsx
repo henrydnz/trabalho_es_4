@@ -1,7 +1,4 @@
-
 import { useState } from "react";
-
-import SeletorEstado from "../components/SeletorEstado";
 import "../styles/meuCadastro.css";
 
 const cadastroInicial = {
@@ -121,24 +118,24 @@ function MeuCadastro() {
   function atualizarEndereco(evento) {
     const { name, value } = evento.target;
 
-    const novoValor =
-      name === "cep" ? formatarCEP(value) : value;
+    let novoValor = value;
+
+    if (name === "cep") {
+      novoValor = formatarCEP(value);
+    }
+
+    if (name === "uf") {
+      novoValor = value
+        .replace(/[^a-zA-Z]/g, "")
+        .slice(0, 2)
+        .toUpperCase();
+    }
 
     setFormulario((anterior) => ({
       ...anterior,
       endereco: {
         ...anterior.endereco,
         [name]: novoValor,
-      },
-    }));
-  }
-
-  function atualizarEstado(estado) {
-    setFormulario((anterior) => ({
-      ...anterior,
-      endereco: {
-        ...anterior.endereco,
-        ...estado,
       },
     }));
   }
@@ -321,9 +318,11 @@ function MeuCadastro() {
 
     if (
       formulario.endereco.uf.length !== 2 ||
-      !formulario.endereco.nomeEstado
+      !formulario.endereco.nomeEstado.trim()
     ) {
-      setErro("Selecione um estado válido.");
+      setErro(
+        "Informe o nome do estado e uma UF com duas letras."
+      );
       return;
     }
 
@@ -788,12 +787,30 @@ function MeuCadastro() {
               />
             </label>
 
-            <label className="campo-duplo">
+            <label>
               Estado *
 
-              <SeletorEstado
-                valor={formulario.endereco.uf}
-                onChange={atualizarEstado}
+              <input
+                type="text"
+                name="nomeEstado"
+                value={formulario.endereco.nomeEstado}
+                onChange={atualizarEndereco}
+                placeholder="Paraná"
+                required
+              />
+            </label>
+
+            <label>
+              UF *
+
+              <input
+                type="text"
+                name="uf"
+                value={formulario.endereco.uf}
+                onChange={atualizarEndereco}
+                placeholder="PR"
+                maxLength={2}
+                required
               />
             </label>
           </div>

@@ -1,7 +1,4 @@
-
 import { useState } from "react";
-
-import SeletorEstado from "../components/SeletorEstado";
 import "../styles/novoAluguel.css";
 
 const tiposEquipamento = [
@@ -226,19 +223,22 @@ function NovoAluguel() {
   function atualizarEndereco(evento) {
     const { name, value } = evento.target;
 
-    const novoValor =
-      name === "cep" ? formatarCEP(value) : value;
+    let novoValor = value;
+
+    if (name === "cep") {
+      novoValor = formatarCEP(value);
+    }
+
+    if (name === "uf") {
+      novoValor = value
+        .replace(/[^a-zA-Z]/g, "")
+        .slice(0, 2)
+        .toUpperCase();
+    }
 
     setEnderecoEntrega((anterior) => ({
       ...anterior,
       [name]: novoValor,
-    }));
-  }
-
-  function atualizarEstado(estado) {
-    setEnderecoEntrega((anterior) => ({
-      ...anterior,
-      ...estado,
     }));
   }
 
@@ -266,7 +266,9 @@ function NovoAluguel() {
     }
 
     if (new Date(dataInicio) < new Date()) {
-      setErro("A data de início não pode estar no passado.");
+      setErro(
+        "A data de início não pode estar no passado."
+      );
       return;
     }
 
@@ -308,7 +310,7 @@ function NovoAluguel() {
     }
 
     if (enderecoFinal.uf.length !== 2) {
-      setErro("Selecione um estado válido.");
+      setErro("Informe uma UF com duas letras.");
       return;
     }
 
@@ -737,12 +739,30 @@ function NovoAluguel() {
                     />
                   </label>
 
-                  <label className="campo campo-largo">
+                  <label className="campo">
                     Estado *
 
-                    <SeletorEstado
-                      valor={enderecoEntrega.uf}
-                      onChange={atualizarEstado}
+                    <input
+                      type="text"
+                      name="nomeEstado"
+                      value={enderecoEntrega.nomeEstado}
+                      onChange={atualizarEndereco}
+                      placeholder="Paraná"
+                      required
+                    />
+                  </label>
+
+                  <label className="campo">
+                    UF *
+
+                    <input
+                      type="text"
+                      name="uf"
+                      value={enderecoEntrega.uf}
+                      onChange={atualizarEndereco}
+                      placeholder="PR"
+                      maxLength={2}
+                      required
                     />
                   </label>
                 </div>
