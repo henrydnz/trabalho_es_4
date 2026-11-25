@@ -174,12 +174,12 @@ public class ClienteDao {
         );
     }
 
-    private Boolean clienteExiste(Pessoa cliente){
-        if(cliente == null) return false;
+    private Integer clienteExiste(Pessoa cliente){
+        if(cliente == null) return null;
 
         String where = cliente.getFisica() ?
-            " \"cpf\" = ?;" :
-            " \"cnpj\" = ?;";
+            " \"cpf\" = ?" :
+            " \"cnpj\" = ?";
 
         return jdbc.query(
 
@@ -188,11 +188,8 @@ public class ClienteDao {
             WHERE""" + where,
 
             rs -> {
-                if(rs.next()){
-                    cliente.setIdPessoa(rs.getInt("idPessoa"));
-                    return true;
-                }
-                return false;
+                if(rs.next()) return rs.getInt("idPessoa");
+                return null;
             },
             cliente.getDocumento()
         );
@@ -247,9 +244,12 @@ public class ClienteDao {
 
     @Transactional
     public Pessoa cadastrarCliente(Pessoa cliente){
-        if(clienteExiste(cliente)) return cliente;
+        Integer idCliente = clienteExiste(cliente);
 
-        Integer idCliente = jdbc.queryForObject(
+        if(idCliente != null)
+            cliente.setIdPessoa(idCliente);
+
+        idCliente = jdbc.queryForObject(
             """
             INSERT INTO "Cliente"
                 ("nome", "idEndereco", "numeroEndereco",
