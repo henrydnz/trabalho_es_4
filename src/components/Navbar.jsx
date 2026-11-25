@@ -1,12 +1,11 @@
 
-const menus = [
-  "Início",
-  "Registrar Aluguel",
-  "Registrar Entrega",
-  "Registrar Devolução",
-];
-
-function Navbar({ pagina, setPagina }) {
+function Navbar({
+  pagina,
+  setPagina,
+  ator,
+  alterarAtor,
+  menus,
+}) {
   return (
     <header className="navbar">
       <button
@@ -31,6 +30,26 @@ function Navbar({ pagina, setPagina }) {
             </button>
           ))}
         </nav>
+
+        <div className="navbar-perfil">
+          <select
+            value={ator}
+            onChange={(event) => alterarAtor(event.target.value)}
+            aria-label="Selecionar ator do sistema"
+          >
+            <option value="cliente">
+              Cliente
+            </option>
+
+            <option value="tecnico">
+              Atendente Técnico
+            </option>
+
+            <option value="entrega">
+              Atendente de Entrega
+            </option>
+          </select>
+        </div>
       </div>
     </header>
   );
