@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 
 import Navbar from "./components/Navbar";
@@ -6,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Enderecos from "./pages/Enderecos";
 import MeuCadastro from "./pages/MeuCadastro";
+import Clientes from "./pages/Clientes";
 import NovoAluguel from "./pages/NovoAluguel";
 import MeusAlugueis from "./pages/MeusAlugueis";
 import RegistrarEntrega from "./pages/RegistrarEntrega";
@@ -116,7 +116,7 @@ function App() {
         return <MeuCadastro />;
 
       case "Clientes":
-        return <PaginaProvisoria titulo="Clientes" />;
+        return <Clientes />;
 
       case "Equipamentos":
         return <PaginaProvisoria titulo="Equipamentos" />;
