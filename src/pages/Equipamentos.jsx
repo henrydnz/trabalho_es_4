@@ -706,16 +706,6 @@ function Equipamentos() {
               </>
             )}
           </section>
-
-          <div className="equipamentos-acoes">
-            <button
-              type="button"
-              className="equipamentos-botao-secundario"
-              onClick={carregarDados}
-            >
-              Atualizar equipamentos
-            </button>
-          </div>
         </>
       )}
     </section>

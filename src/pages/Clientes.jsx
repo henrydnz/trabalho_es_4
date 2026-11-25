@@ -633,16 +633,6 @@ function Clientes() {
               </div>
             )}
           </section>
-
-          <div className="clientes-acoes">
-            <button
-              type="button"
-              className="clientes-botao-secundario"
-              onClick={carregarClientes}
-            >
-              Atualizar clientes
-            </button>
-          </div>
         </>
       )}
     </section>
