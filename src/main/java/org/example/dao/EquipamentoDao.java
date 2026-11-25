@@ -53,7 +53,8 @@ public class EquipamentoDao {
                     rs.getInt("nroPatrimonio"),
                     rs.getBoolean("isAlugado"),
                     tipo,
-                    modelo
+                    modelo,
+                    rs.getInt("idEquipamento")
             );
 
         }, args);
@@ -180,19 +181,25 @@ public class EquipamentoDao {
         Integer idModelo = obterIdModelo(modelo, idFabricante);
         Integer idTipo = obterIdTipoEquipamento(tipo);
 
-        jdbc.update(
+        Integer idEquipamento = jdbc.query(
                 """
                 INSERT INTO "Equipamento"
                     ("idModeloEquipamento", "idTipoEquipamento",
                      "nroPatrimonio", "isAlugado")
                 VALUES (?, ?, ?, ?)
+                RETURNING "idEquipamento"
                 """,
-
+                rs -> {
+                    if(rs.next()) return rs.getInt("idEquipamento");
+                    return null;
+                },
                 idModelo,
                 idTipo,
                 equipamento.getNumPatrimonio(),
                 equipamento.isAlugado()
         );
+
+        equipamento.setIdEquipamento(idEquipamento);
 
         return equipamento;
     }

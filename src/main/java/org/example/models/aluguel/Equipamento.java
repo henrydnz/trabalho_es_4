@@ -11,11 +11,12 @@ public class Equipamento implements Serializable {
 
     public Equipamento() {}
 
-    public Equipamento(int numPatrimonio, boolean isAlugado, TipoEquipamento tipoEquipamento, Modelo modelo) {
+    public Equipamento(int numPatrimonio, boolean isAlugado, TipoEquipamento tipoEquipamento, Modelo modelo, Integer idEquipamento) {
         this.numPatrimonio = numPatrimonio;
         this.isAlugado = isAlugado;
         this.tipoEquipamento = tipoEquipamento;
         this.modelo = modelo;
+        this.idEquipamento = idEquipamento;
     }
 
     public int getNumPatrimonio() {

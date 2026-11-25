@@ -73,58 +73,53 @@ public class ClienteDao {
         return pessoas;
     }
 
-    private void adicionarEmails(Map<Integer, Pessoa>  pessoasPorId, Object[] ids, StringBuilder placeholders) {
+    private void adicionarEmails(Map<Integer, Pessoa> pessoasPorId, Object[] ids, StringBuilder placeholders) {
         jdbc.query(
+                """
+                SELECT "idCliente", "endEmail"
+                FROM "EmailCliente"
+                WHERE "idCliente" IN (
+                """ + placeholders + ")",
 
-            """
-            SELECT "idCliente", "endEmail"
-            FROM "EmailCliente"
-            WHERE "idCliente" IN (
-            """ + placeholders + ")",
-
-            rs -> {
-                while (rs.next()) {
+                rs -> {
                     Pessoa pessoa = pessoasPorId.get(rs.getInt("idCliente"));
                     if (pessoa != null) pessoa.addEmail(rs.getString("endEmail"));
-                }
-            },
-            ids
+                },
+                ids
         );
     }
 
-    private void adicionarTelefones(Map<Integer, Pessoa>  pessoasPorId, Object[] ids, StringBuilder placeholders){
+    private void adicionarTelefones(Map<Integer, Pessoa> pessoasPorId, Object[] ids, StringBuilder placeholders) {
         jdbc.query(
+                """
+                SELECT
+                    tc."idCliente",
+                    tc."nroTelefone",
+                    ddd."ddd",
+                    ddi."ddi"
+                FROM "TelefoneCliente" tc
+        
+                LEFT JOIN "DDD" ddd
+                    ON ddd."idDDD" = tc."idDDD"
+        
+                LEFT JOIN "DDI" ddi
+                    ON ddi."idDDI" = tc."idDDI"
+        
+                WHERE tc."idCliente" IN (
+                """ + placeholders + ")",
 
-            """
-            SELECT
-                tc."idCliente",
-                tc."nroTelefone",
-                ddd."ddd",
-                ddi."ddi"
-            FROM "TelefoneCliente" tc
-
-            LEFT JOIN "DDD" ddd
-                ON ddd."idDDD" = tc."idDDD"
-
-            LEFT JOIN "DDI" ddi
-                ON ddi."idDDI" = tc."idDDI"
-
-            WHERE tc."idCliente" IN (
-            """ + placeholders + ")",
-
-            rs -> {
-                while (rs.next()) {
+                rs -> {
                     Pessoa pessoa = pessoasPorId.get(rs.getInt("idCliente"));
+
                     if (pessoa != null) {
                         pessoa.addTelefone(
-                            rs.getString("ddd"),
-                            rs.getString("ddi"),
-                            rs.getString("nroTelefone")
+                                rs.getString("ddd"),
+                                rs.getString("ddi"),
+                                rs.getString("nroTelefone")
                         );
                     }
-                }
-            },
-            ids
+                },
+                ids
         );
     }
 
