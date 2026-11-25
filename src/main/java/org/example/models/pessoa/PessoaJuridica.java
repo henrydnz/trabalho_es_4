@@ -1,8 +1,9 @@
 package org.example.models.pessoa;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class PessoaJuridica extends Pessoa {
+public class PessoaJuridica extends Pessoa implements Serializable {
     private String cnpj;
 
     public PessoaJuridica() {}

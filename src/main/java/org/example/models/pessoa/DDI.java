@@ -1,7 +1,11 @@
 package org.example.models.pessoa;
 
-public class DDI {
+import java.io.Serializable;
+
+public class DDI implements Serializable {
     private String nroDDI;
+
+    public DDI() {}
 
     public DDI(String nroDDI) {
         this.nroDDI = nroDDI;

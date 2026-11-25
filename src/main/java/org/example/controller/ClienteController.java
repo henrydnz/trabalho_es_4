@@ -9,6 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/clientes")
+@CrossOrigin(origins = "*")
 public class ClienteController {
     private final ClienteService clienteService;
 
@@ -17,42 +18,42 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<Pessoa> cadastrarPessoa(@RequestBody Pessoa pessoa) {
-        Pessoa pessoaSalva = clienteService.cadastrarPessoa(pessoa);
+    public ResponseEntity<Pessoa> cadastrarCliente(@RequestBody Pessoa cliente) {
+        Pessoa clienteSalvo = clienteService.cadastrarCliente(cliente);
 
-        if (pessoaSalva == null)
+        if (clienteSalvo == null)
             return ResponseEntity.badRequest().build();
 
-        return ResponseEntity.ok(pessoaSalva);
+        return ResponseEntity.ok(clienteSalvo);
     }
 
     @GetMapping
     public ResponseEntity<List<Pessoa>> listarClientes() {
-        List<Pessoa> pessoas = clienteService.listarClientes();
+        List<Pessoa> clientes = clienteService.listarClientes();
 
-        if (pessoas == null || pessoas.isEmpty())
+        if (clientes == null || clientes.isEmpty())
             return ResponseEntity.notFound().build();
 
-        return ResponseEntity.ok(pessoas);
+        return ResponseEntity.ok(clientes);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Pessoa> buscarClientePorID(@PathVariable Integer id) {
-        Pessoa pessoa = clienteService.buscarClientePorID(id);
+        Pessoa cliente = clienteService.buscarClientePorID(id);
 
-        if (pessoa == null)
+        if (cliente == null)
             return ResponseEntity.notFound().build();
 
-        return ResponseEntity.ok(pessoa);
+        return ResponseEntity.ok(cliente);
     }
 
     @GetMapping("/doc/{doc}")
     public ResponseEntity<Pessoa> buscarClientePorDocumento(@PathVariable String doc) {
-        Pessoa pessoa = clienteService.buscarClientePorDocumento(doc);
+        Pessoa cliente = clienteService.buscarClientePorDocumento(doc);
 
-        if (pessoa == null)
+        if (cliente == null)
             return ResponseEntity.notFound().build();
 
-        return ResponseEntity.ok(pessoa);
+        return ResponseEntity.ok(cliente);
     }
 }

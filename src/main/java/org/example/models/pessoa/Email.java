@@ -1,8 +1,11 @@
 package org.example.models.pessoa;
 
-public class Email {
+import java.io.Serializable;
+
+public class Email implements Serializable {
     String email;
 
+    public Email() {}
     public Email(String email) {
         this.email = email;
     }

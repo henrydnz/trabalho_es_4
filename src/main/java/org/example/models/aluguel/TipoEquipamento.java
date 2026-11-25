@@ -1,9 +1,12 @@
 package org.example.models.aluguel;
 
-public class TipoEquipamento {
+import java.io.Serializable;
+
+public class TipoEquipamento implements Serializable {
     private String nome;
     private Double valorDiaria;
 
+    public TipoEquipamento() {}
     public TipoEquipamento(String nome, Double valorDiaria) {
         this.nome = nome;
         this.valorDiaria = valorDiaria;

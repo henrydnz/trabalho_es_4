@@ -1,11 +1,14 @@
 package org.example.models.pessoa;
 
-public class Telefone {
+import java.io.Serializable;
+
+public class Telefone implements Serializable {
     private DDD nroDDD;
     private DDI nroDDI;
 
     private String nroFone;
 
+    public Telefone() {}
     public Telefone(DDD nroDDD, DDI nroDDI, String nroFone) {
         this.nroDDD = nroDDD;
         this.nroDDI = nroDDI;

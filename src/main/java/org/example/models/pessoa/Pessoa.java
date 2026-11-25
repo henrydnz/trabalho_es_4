@@ -1,25 +1,30 @@
 package org.example.models.pessoa;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.io.Serializable;
 import java.util.List;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.PROPERTY,
-        property = "isFisica"
+        property = "isFisica",
+        visible = true
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = PessoaFisica.class, name = "true"),
         @JsonSubTypes.Type(value = PessoaJuridica.class, name = "false")
 })
-public abstract class Pessoa {
+public abstract class Pessoa implements Serializable {
     protected Integer idPessoa;
     protected String nome;
     protected List<Telefone> telefoneList;
     protected List<Email> emailList;
     protected EnderecoEspecifico enderecoEspecifico;
+
+    @JsonProperty("isFisica")
     protected Boolean isFisica;
 
     public  Pessoa() {}
