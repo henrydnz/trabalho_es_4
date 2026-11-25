@@ -1,0 +1,487 @@
+.equipamentos-pagina {
+  max-width: 1100px;
+  margin: 45px auto 80px;
+  padding: 0 24px;
+}
+
+.equipamentos-cabecalho {
+  margin-bottom: 32px;
+}
+
+.equipamentos-cabecalho h1 {
+  color: #45062e;
+  font-size: 38px;
+  margin: 10px 0;
+}
+
+.equipamentos-cabecalho p {
+  color: #725a68;
+  line-height: 1.6;
+}
+
+/* Indicadores */
+
+.equipamentos-indicadores {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.equipamentos-indicador {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #ead8e3;
+  border-radius: 16px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.equipamentos-indicador:hover {
+  border-color: #7f055f;
+  transform: translateY(-2px);
+}
+
+.equipamentos-indicador.ativo {
+  background: #fdf2f7;
+  border-color: #7f055f;
+}
+
+.equipamentos-indicador span {
+  color: #725a68;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.equipamentos-indicador strong {
+  color: #45062e;
+  font-size: 36px;
+  line-height: 1.2;
+}
+
+.equipamentos-indicador small {
+  color: #8b7582;
+  font-size: 13px;
+}
+
+.equipamentos-indicador .texto-disponivel {
+  color: #28734a;
+}
+
+.equipamentos-indicador .texto-alugado {
+  color: #365b86;
+}
+
+/* Blocos */
+
+.equipamentos-bloco {
+  background: #ffffff;
+  border: 1px solid #ead8e3;
+  border-radius: 18px;
+  padding: 28px;
+  margin-bottom: 24px;
+}
+
+.equipamentos-bloco h2 {
+  color: #45062e;
+  font-size: 22px;
+  margin: 0 0 18px;
+}
+
+/* Abas */
+
+.equipamentos-abas {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #ead8e3;
+  margin-bottom: 26px;
+}
+
+.equipamentos-abas button {
+  padding: 12px 4px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #725a68;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.equipamentos-abas button:hover {
+  color: #7f055f;
+}
+
+.equipamentos-abas button.ativo {
+  color: #7f055f;
+  border-bottom-color: #7f055f;
+}
+
+/* Filtros */
+
+.equipamentos-filtros {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.equipamentos-filtros.filtro-simples {
+  grid-template-columns: 1fr;
+}
+
+.equipamentos-filtros label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #45062e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.equipamentos-filtros input,
+.equipamentos-filtros select {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  border: 1px solid #dfcbd8;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #45062e;
+  font-family: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.equipamentos-filtros input:focus,
+.equipamentos-filtros select:focus {
+  border-color: #7f055f;
+}
+
+.equipamentos-filtros input::placeholder {
+  color: #a18b99;
+}
+
+/* Listagem */
+
+.equipamentos-lista-cabecalho {
+  margin-bottom: 20px;
+}
+
+.equipamentos-lista-cabecalho h2 {
+  margin-bottom: 6px;
+}
+
+.equipamentos-lista-cabecalho p {
+  color: #725a68;
+  font-size: 14px;
+  margin: 0;
+}
+
+.equipamentos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.equipamentos-card,
+.equipamentos-tipo-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 22px;
+  border: 1px solid #ead8e3;
+  border-radius: 12px;
+  background: #ffffff;
+  transition: 0.2s ease;
+}
+
+.equipamentos-card:hover,
+.equipamentos-tipo-card:hover {
+  border-color: #cfa8bf;
+  background: #fffbfd;
+}
+
+.equipamentos-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.equipamentos-card-info h3 {
+  color: #45062e;
+  font-size: 17px;
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+
+.equipamentos-card-info p {
+  color: #725a68;
+  font-size: 14px;
+  margin: 0;
+}
+
+.equipamentos-patrimonio {
+  color: #8b7582;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.equipamentos-quantidade {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 120px;
+}
+
+.equipamentos-quantidade strong {
+  color: #28734a;
+  font-size: 24px;
+}
+
+.equipamentos-quantidade small {
+  color: #725a68;
+  font-size: 12px;
+}
+
+/* Situação */
+
+.equipamentos-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 13px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.equipamentos-status.disponivel {
+  color: #28734a;
+  background: #e8f5ed;
+}
+
+.equipamentos-status.alugado {
+  color: #365b86;
+  background: #eaf1fa;
+}
+
+/* Botões */
+
+.equipamentos-botao-secundario {
+  padding: 11px 16px;
+  border: 1px solid #7f055f;
+  border-radius: 9px;
+  background: transparent;
+  color: #7f055f;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.equipamentos-botao-secundario:hover {
+  background: #f8e9ee;
+}
+
+.equipamentos-voltar {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 0;
+  margin-bottom: 20px;
+  border: none;
+  background: transparent;
+  color: #7f055f;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.equipamentos-voltar:hover {
+  text-decoration: underline;
+}
+
+/* Lista vazia */
+
+.equipamentos-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 20px;
+  border: 1px dashed #dfcbd8;
+  border-radius: 12px;
+  background: #fffbfd;
+}
+
+.equipamentos-vazio h3 {
+  color: #45062e;
+  font-size: 20px;
+  margin: 0 0 10px;
+}
+
+.equipamentos-vazio p {
+  color: #725a68;
+  margin: 0 0 24px;
+  line-height: 1.6;
+}
+
+/* Detalhes */
+
+.equipamentos-bloco-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.equipamentos-bloco-titulo h2 {
+  margin: 0;
+}
+
+.equipamentos-detalhes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.equipamento-campo-detalhe {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  background: #fdf8fb;
+  border: 1px solid #f0e2eb;
+  border-radius: 10px;
+}
+
+.equipamento-campo-detalhe small {
+  color: #8b7582;
+  font-size: 13px;
+}
+
+.equipamento-campo-detalhe strong {
+  color: #45062e;
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.equipamentos-aviso {
+  background: #f8e9ee;
+  border-left: 4px solid #7f055f;
+  border-radius: 8px;
+  padding: 16px 20px;
+  color: #725a68;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.equipamentos-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Responsividade */
+
+@media (max-width: 850px) {
+  .equipamentos-indicadores {
+    gap: 12px;
+  }
+
+  .equipamentos-indicador {
+    padding: 18px;
+  }
+
+  .equipamentos-filtros {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .equipamentos-filtros label:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .equipamentos-card,
+  .equipamentos-tipo-card {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 600px) {
+  .equipamentos-pagina {
+    margin-top: 28px;
+    padding: 0 16px;
+  }
+
+  .equipamentos-cabecalho h1 {
+    font-size: 30px;
+  }
+
+  .equipamentos-indicadores {
+    grid-template-columns: 1fr;
+  }
+
+  .equipamentos-bloco {
+    padding: 18px;
+  }
+
+  .equipamentos-abas {
+    gap: 12px;
+  }
+
+  .equipamentos-abas button {
+    flex: 1;
+    font-size: 13px;
+  }
+
+  .equipamentos-filtros {
+    grid-template-columns: 1fr;
+  }
+
+  .equipamentos-card,
+  .equipamentos-tipo-card {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .equipamentos-card-info {
+    flex-basis: 100%;
+  }
+
+  .equipamentos-quantidade {
+    align-items: flex-start;
+  }
+
+  .equipamentos-card .equipamentos-botao-secundario,
+  .equipamentos-tipo-card .equipamentos-botao-secundario {
+    width: 100%;
+  }
+
+  .equipamentos-detalhes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .equipamentos-bloco-titulo {
+    flex-wrap: wrap;
+  }
+
+  .equipamentos-acoes {
+    flex-direction: column;
+  }
+}

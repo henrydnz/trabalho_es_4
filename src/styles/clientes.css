@@ -294,18 +294,6 @@
   background: #fffbfd;
 }
 
-.clientes-vazio-icone {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 64px;
-  height: 64px;
-  background: #f8e9ee;
-  border-radius: 50%;
-  font-size: 28px;
-  margin-bottom: 16px;
-}
-
 .clientes-vazio h3 {
   color: #45062e;
   font-size: 20px;

@@ -411,9 +411,6 @@ function Clientes() {
 
         {clientesFiltrados.length === 0 ? (
           <div className="clientes-vazio">
-            <div className="clientes-vazio-icone">
-              👥
-            </div>
 
             <h3>Nenhum cliente encontrado</h3>
 
