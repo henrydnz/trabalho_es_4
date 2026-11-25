@@ -5,11 +5,11 @@ import Navbar from "./components/Navbar";
 
 import Home from "./pages/Home";
 import Enderecos from "./pages/Enderecos";
+import MeuCadastro from "./pages/MeuCadastro";
 import NovoAluguel from "./pages/NovoAluguel";
 import RegistrarEntrega from "./pages/RegistrarEntrega";
 import RegistrarDevolucao from "./pages/RegistrarDevolucao";
 
-// Páginas disponíveis para cada ator
 const menusPorAtor = {
   cliente: [
     "Início",
@@ -49,7 +49,6 @@ function obterAtorInicial() {
     : "cliente";
 }
 
-// Componente temporário para páginas ainda não implementadas
 function PaginaProvisoria({ titulo }) {
   return (
     <section className="pagina-placeholder">
@@ -64,7 +63,6 @@ function App() {
   const [ator, setAtor] = useState(obterAtorInicial);
 
   function setPagina(novaPagina) {
-    // Verifica se o ator pode acessar a página
     if (
       novaPagina !== "Debug" &&
       !menusPorAtor[ator].includes(novaPagina)
@@ -90,7 +88,6 @@ function App() {
     setAtor(novoAtor);
     localStorage.setItem("ator", novoAtor);
 
-    // Retorna ao início ao trocar de ator
     setPagina("Início");
   }
 
@@ -115,7 +112,7 @@ function App() {
         return <Home setPagina={setPagina} ator={ator} />;
 
       case "Meu Cadastro":
-        return <PaginaProvisoria titulo="Meu Cadastro" />;
+        return <MeuCadastro />;
 
       case "Clientes":
         return <PaginaProvisoria titulo="Clientes" />;
