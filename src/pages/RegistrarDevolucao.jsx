@@ -1,43 +1,28 @@
-
 import { useState } from "react";
 import "../styles/registrarDevolucao.css";
 
-const alugueisExemplo = [
-  {
-    id: 1001,
-    cliente: "Ana Paula Silva",
-    equipamento: "Furadeira de impacto",
-    patrimonio: "EQ-001",
-    marca: "Bosch",
-    modelo: "GSB 13 RE",
-    dataPrevista: "2026-11-08T14:00",
-  },
-  {
-    id: 1002,
-    cliente: "Carlos Eduardo Lima",
-    equipamento: "Martelete rompedor",
-    patrimonio: "EQ-002",
-    marca: "Makita",
-    modelo: "HM0870C",
-    dataPrevista: "2026-11-10T16:00",
-  },
-  {
-    id: 1003,
-    cliente: "Mariana Oliveira",
-    equipamento: "Lavadora de alta pressão",
-    patrimonio: "EQ-003",
-    marca: "Karcher",
-    modelo: "K3",
-    dataPrevista: "2026-11-12T10:00",
-  },
-];
+function obterAlugueis() {
+  try {
+    const dados = JSON.parse(
+      localStorage.getItem("equipass-alugueis") || "[]"
+    );
+
+    return Array.isArray(dados) ? dados : [];
+  } catch {
+    return [];
+  }
+}
 
 function formatarData(valor) {
-  if (!valor) return "—";
+  if (!valor) {
+    return "Não informado";
+  }
 
   const data = new Date(valor);
 
-  if (Number.isNaN(data.getTime())) return "—";
+  if (Number.isNaN(data.getTime())) {
+    return "Data inválida";
+  }
 
   return data.toLocaleString("pt-BR", {
     dateStyle: "short",
@@ -45,47 +30,141 @@ function formatarData(valor) {
   });
 }
 
-function RegistrarDevolucao() {
-  const [aluguelId, setAluguelId] = useState("");
-  const [dataDevolucao, setDataDevolucao] = useState("");
-  const [responsavel, setResponsavel] = useState("");
-  const [condicao, setCondicao] = useState("");
-  const [observacoes, setObservacoes] = useState("");
-  const [confirmado, setConfirmado] = useState(false);
+function formatarMoeda(valor) {
+  if (
+    valor === null ||
+    valor === undefined ||
+    valor === ""
+  ) {
+    return "Não informado";
+  }
 
-  const aluguel = alugueisExemplo.find(
-    (item) => String(item.id) === aluguelId
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(valor);
+}
+
+function CampoResumo({ titulo, valor }) {
+  return (
+    <div>
+      <span>{titulo}</span>
+
+      <strong>
+        {valor ?? "Não informado"}
+      </strong>
+    </div>
+  );
+}
+
+function RegistrarDevolucao() {
+  const [alugueis, setAlugueis] =
+    useState(obterAlugueis);
+
+  const [aluguelId, setAluguelId] = useState("");
+
+  const [dataDevolucao, setDataDevolucao] =
+    useState("");
+
+  const [valorPago, setValorPago] = useState("");
+
+  const [erro, setErro] = useState("");
+
+  const alugueisEmLocacao = alugueis.filter(
+    (item) => item.situacao === "Em locação"
   );
 
-  function registrar(evento) {
-    evento.preventDefault();
+  const alugueisEncerrados = alugueis.filter(
+    (item) => item.situacao === "Encerrado"
+  );
 
-    setConfirmado(false);
+  const aluguel = alugueisEmLocacao.find(
+    (item) =>
+      String(item.idAluguel) === aluguelId
+  );
 
-    if (
-      !aluguel ||
-      !dataDevolucao ||
-      !responsavel.trim() ||
-      !condicao
-    ) {
-      return;
-    }
+  const equipamento = aluguel?.equipamento;
 
-    setConfirmado(true);
+  const valorPagoValido =
+    valorPago.trim() !== "" &&
+    Number.isFinite(Number(valorPago)) &&
+    Number(valorPago) >= 0;
+
+  const podeRegistrar =
+    Boolean(aluguel) &&
+    Boolean(dataDevolucao) &&
+    valorPagoValido;
+
+  function selecionarAluguel(evento) {
+    setAluguelId(evento.target.value);
+    setDataDevolucao("");
+    setValorPago("");
+    setErro("");
   }
 
   function limpar() {
     setAluguelId("");
     setDataDevolucao("");
-    setResponsavel("");
-    setCondicao("");
-    setObservacoes("");
-    setConfirmado(false);
+    setValorPago("");
+    setErro("");
   }
 
-  function atualizarCampo(funcao, valor) {
-    funcao(valor);
-    setConfirmado(false);
+  function atualizarLista() {
+    setAlugueis(obterAlugueis());
+    limpar();
+  }
+
+  function registrar(evento) {
+    evento.preventDefault();
+
+    setErro("");
+
+    if (!aluguel) {
+      setErro("Selecione um aluguel em locação.");
+      return;
+    }
+
+    if (!dataDevolucao) {
+      setErro(
+        "Informe a data e a hora da devolução."
+      );
+      return;
+    }
+
+    const data = new Date(dataDevolucao);
+
+    if (Number.isNaN(data.getTime())) {
+      setErro(
+        "Informe uma data de devolução válida."
+      );
+      return;
+    }
+
+    if (data > new Date()) {
+      setErro(
+        "A data da devolução não pode estar no futuro."
+      );
+      return;
+    }
+
+    if (
+      aluguel.dataHoraEntrega &&
+      data < new Date(aluguel.dataHoraEntrega)
+    ) {
+      setErro(
+        "A devolução não pode ocorrer antes da entrega."
+      );
+      return;
+    }
+
+    if (!valorPagoValido) {
+      setErro("Informe um valor pago válido.");
+      return;
+    }
+
+    setErro(
+      "O registro da devolução estará disponível após a integração com o servidor."
+    );
   }
 
   return (
@@ -98,154 +177,422 @@ function RegistrarDevolucao() {
         <h1>Registrar Devolução</h1>
 
         <p>
-          Identifique o aluguel, confira o equipamento
-          devolvido e registre as condições da devolução.
+          Localize um aluguel em andamento, confira
+          o equipamento devolvido e registre as
+          informações da devolução.
         </p>
+      </div>
+
+      <div className="devolucao-indicadores">
+        <div className="devolucao-indicador">
+          <span>Aluguéis em andamento</span>
+
+          <strong>
+            {alugueisEmLocacao.length}
+          </strong>
+        </div>
+
+        <div className="devolucao-indicador">
+          <span>Aluguéis encerrados</span>
+
+          <strong>
+            {alugueisEncerrados.length}
+          </strong>
+        </div>
       </div>
 
       <form
         className="registrar-devolucao-painel"
         onSubmit={registrar}
       >
-        <h2>Dados do aluguel</h2>
+        <section className="devolucao-etapa">
+          <div className="devolucao-etapa-titulo">
+            <span className="devolucao-numero">
+              1
+            </span>
 
-        <div className="devolucao-form-grid">
-          <label className="devolucao-campo devolucao-campo-largo">
-            Número do aluguel
-            <select
-              value={aluguelId}
-              onChange={(e) =>
-                atualizarCampo(setAluguelId, e.target.value)
-              }
-              required
-            >
-              <option value="">Selecione um aluguel</option>
+            <h2>Identificação do aluguel</h2>
+          </div>
 
-              {alugueisExemplo.map((item) => (
-                <option key={item.id} value={item.id}>
-                  #{item.id} - {item.cliente}
+          <p className="devolucao-descricao">
+            Selecione um aluguel cujo equipamento
+            já tenha sido entregue ao cliente.
+          </p>
+
+          <div className="devolucao-form-grid">
+            <label className="devolucao-campo devolucao-campo-largo">
+              Número do aluguel *
+
+              <select
+                value={aluguelId}
+                onChange={selecionarAluguel}
+                disabled={
+                  alugueisEmLocacao.length === 0
+                }
+                required
+              >
+                <option value="">
+                  {alugueisEmLocacao.length === 0
+                    ? "Nenhum aluguel em locação"
+                    : "Selecione um aluguel"}
                 </option>
-              ))}
-            </select>
-          </label>
-        </div>
 
-        {aluguel && (
-          <div className="devolucao-resumo">
-            <h3>Informações do aluguel</h3>
+                {alugueisEmLocacao.map((item) => (
+                  <option
+                    key={item.idAluguel}
+                    value={item.idAluguel}
+                  >
+                    #{String(item.idAluguel)
+                      .padStart(4, "0")}
+                    {" - "}
+                    {item.nomeCliente}
+                    {" - "}
+                    {item.tipoEquipamento}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
 
-            <div className="devolucao-resumo-grid">
-              <div>
-                <span>Cliente</span>
-                <strong>{aluguel.cliente}</strong>
+          {alugueisEmLocacao.length === 0 && (
+            <div className="devolucao-vazio">
+              <h3>Nenhuma devolução pendente</h3>
+
+              <p>
+                Não há aluguéis em andamento
+                aguardando a devolução do equipamento.
+              </p>
+
+              <button
+                type="button"
+                className="devolucao-botao-secundario"
+                onClick={atualizarLista}
+              >
+                Atualizar lista
+              </button>
+            </div>
+          )}
+
+          {aluguel && (
+            <div className="devolucao-resumo">
+              <div className="devolucao-resumo-cabecalho">
+                <h3>Informações do aluguel</h3>
+
+                <span className="devolucao-status">
+                  Em locação
+                </span>
               </div>
 
-              <div>
-                <span>Equipamento</span>
-                <strong>{aluguel.equipamento}</strong>
-              </div>
+              <div className="devolucao-resumo-grid">
+                <CampoResumo
+                  titulo="Cliente"
+                  valor={aluguel.nomeCliente}
+                />
 
-              <div>
-                <span>Número patrimonial</span>
-                <strong>{aluguel.patrimonio}</strong>
-              </div>
+                <CampoResumo
+                  titulo="CPF ou CNPJ"
+                  valor={aluguel.documentoCliente}
+                />
 
-              <div>
-                <span>Marca</span>
-                <strong>{aluguel.marca}</strong>
-              </div>
+                <CampoResumo
+                  titulo="Tipo de equipamento"
+                  valor={aluguel.tipoEquipamento}
+                />
 
-              <div>
-                <span>Modelo</span>
-                <strong>{aluguel.modelo}</strong>
-              </div>
+                <CampoResumo
+                  titulo="Data da solicitação"
+                  valor={formatarData(
+                    aluguel.dataPedido
+                  )}
+                />
 
-              <div>
-                <span>Devolução prevista</span>
-                <strong>
-                  {formatarData(aluguel.dataPrevista)}
-                </strong>
+                <CampoResumo
+                  titulo="Início previsto"
+                  valor={formatarData(
+                    aluguel.dataHoraInicio
+                  )}
+                />
+
+                <CampoResumo
+                  titulo="Entrega realizada em"
+                  valor={formatarData(
+                    aluguel.dataHoraEntrega
+                  )}
+                />
+
+                <CampoResumo
+                  titulo="Devolução prevista"
+                  valor={formatarData(
+                    aluguel.dataHoraFim
+                  )}
+                />
+
+                <CampoResumo
+                  titulo="Valor previsto"
+                  valor={formatarMoeda(
+                    aluguel.valorTotal
+                  )}
+                />
               </div>
             </div>
+          )}
+        </section>
+
+        <section className="devolucao-etapa">
+          <div className="devolucao-etapa-titulo">
+            <span className="devolucao-numero">
+              2
+            </span>
+
+            <h2>Conferência do equipamento</h2>
           </div>
-        )}
 
-        <h2>Dados da devolução</h2>
+          <p className="devolucao-descricao">
+            Confira os dados do equipamento físico
+            vinculado ao aluguel.
+          </p>
 
-        <div className="devolucao-form-grid">
-          <label className="devolucao-campo">
-            Data e hora da devolução
-            <input
-              type="datetime-local"
-              value={dataDevolucao}
-              onChange={(e) =>
-                atualizarCampo(
-                  setDataDevolucao,
-                  e.target.value
-                )
-              }
-              required
-            />
-          </label>
+          {!aluguel ? (
+            <div className="devolucao-aviso">
+              Selecione um aluguel para visualizar
+              as informações do equipamento.
+            </div>
+          ) : equipamento ? (
+            <div className="devolucao-resumo">
+              <h3>Equipamento vinculado</h3>
 
-          <label className="devolucao-campo">
-            Responsável pelo recebimento
-            <input
-              type="text"
-              placeholder="Nome do atendente"
-              value={responsavel}
-              onChange={(e) =>
-                atualizarCampo(setResponsavel, e.target.value)
-              }
-              required
-            />
-          </label>
+              <div className="devolucao-resumo-grid">
+                <CampoResumo
+                  titulo="Tipo de equipamento"
+                  valor={aluguel.tipoEquipamento}
+                />
 
-          <label className="devolucao-campo devolucao-campo-largo">
-            Condição do equipamento
-            <select
-              value={condicao}
-              onChange={(e) =>
-                atualizarCampo(setCondicao, e.target.value)
-              }
-              required
-            >
-              <option value="">Selecione a condição</option>
-              <option value="bom">
-                Bom estado
-              </option>
-              <option value="desgaste">
-                Desgaste pelo uso
-              </option>
-              <option value="danificado">
-                Equipamento danificado
-              </option>
-              <option value="manutencao">
-                Necessita de manutenção
-              </option>
-            </select>
-          </label>
+                <CampoResumo
+                  titulo="Número de patrimônio"
+                  valor={
+                    equipamento.numeroPatrimonio
+                  }
+                />
 
-          <label className="devolucao-campo devolucao-campo-largo">
-            Observações
-            <textarea
-              rows="4"
-              placeholder="Descreva as condições do equipamento ou outras observações..."
-              value={observacoes}
-              onChange={(e) =>
-                atualizarCampo(setObservacoes, e.target.value)
-              }
-            />
-          </label>
+                <CampoResumo
+                  titulo="Fabricante"
+                  valor={equipamento.fabricante}
+                />
+
+                <CampoResumo
+                  titulo="Modelo"
+                  valor={equipamento.modelo}
+                />
+
+                <CampoResumo
+                  titulo="Situação"
+                  valor="Em locação"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="devolucao-aviso">
+              As informações do equipamento físico
+              não estão disponíveis.
+            </div>
+          )}
+        </section>
+
+        <section className="devolucao-etapa">
+          <div className="devolucao-etapa-titulo">
+            <span className="devolucao-numero">
+              3
+            </span>
+
+            <h2>Dados da devolução</h2>
+          </div>
+
+          <p className="devolucao-descricao">
+            Informe a data e a hora em que o
+            equipamento foi devolvido.
+          </p>
+
+          <div className="devolucao-form-grid">
+            <label className="devolucao-campo">
+              Data e hora da devolução *
+
+              <input
+                type="datetime-local"
+                value={dataDevolucao}
+                disabled={!aluguel}
+                onChange={(evento) => {
+                  setDataDevolucao(
+                    evento.target.value
+                  );
+                  setErro("");
+                }}
+                required
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="devolucao-etapa">
+          <div className="devolucao-etapa-titulo">
+            <span className="devolucao-numero">
+              4
+            </span>
+
+            <h2>Informações financeiras</h2>
+          </div>
+
+          <p className="devolucao-descricao">
+            Informe o valor efetivamente pago pelo
+            cliente referente à locação.
+          </p>
+
+          <div className="devolucao-financeiro">
+            <div className="devolucao-financeiro-item">
+              <span>Valor da diária</span>
+
+              <strong>
+                {aluguel
+                  ? formatarMoeda(
+                      aluguel.valorDiaria
+                    )
+                  : "—"}
+              </strong>
+            </div>
+
+            <div className="devolucao-financeiro-item">
+              <span>Valor total previsto</span>
+
+              <strong>
+                {aluguel
+                  ? formatarMoeda(
+                      aluguel.valorTotal
+                    )
+                  : "—"}
+              </strong>
+            </div>
+          </div>
+
+          <div className="devolucao-form-grid">
+            <label className="devolucao-campo">
+              Valor pago (R$) *
+
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={valorPago}
+                placeholder="0,00"
+                disabled={!aluguel}
+                onChange={(evento) => {
+                  setValorPago(evento.target.value);
+                  setErro("");
+                }}
+                required
+              />
+            </label>
+          </div>
+
+          <p className="devolucao-observacao">
+            Este campo registra o valor recebido.
+            O sistema não realiza o processamento
+            do pagamento.
+          </p>
+        </section>
+
+        <div className="devolucao-confirmacao">
+          <h3>Confirmação da devolução</h3>
+
+          <div className="devolucao-confirmacao-linha">
+            <span>Aluguel</span>
+
+            <strong>
+              {aluguel
+                ? `#${String(aluguel.idAluguel)
+                    .padStart(4, "0")}`
+                : "—"}
+            </strong>
+          </div>
+
+          <div className="devolucao-confirmacao-linha">
+            <span>Cliente</span>
+
+            <strong>
+              {aluguel?.nomeCliente || "—"}
+            </strong>
+          </div>
+
+          <div className="devolucao-confirmacao-linha">
+            <span>Tipo de equipamento</span>
+
+            <strong>
+              {aluguel?.tipoEquipamento || "—"}
+            </strong>
+          </div>
+
+          <div className="devolucao-confirmacao-linha">
+            <span>Patrimônio</span>
+
+            <strong>
+              {equipamento?.numeroPatrimonio ||
+                "—"}
+            </strong>
+          </div>
+
+          <div className="devolucao-confirmacao-linha">
+            <span>Data da devolução</span>
+
+            <strong>
+              {dataDevolucao
+                ? formatarData(dataDevolucao)
+                : "—"}
+            </strong>
+          </div>
+
+          <div className="devolucao-confirmacao-linha">
+            <span>Valor previsto</span>
+
+            <strong>
+              {aluguel
+                ? formatarMoeda(
+                    aluguel.valorTotal
+                  )
+                : "—"}
+            </strong>
+          </div>
+
+          <div className="devolucao-confirmacao-linha">
+            <span>Valor pago</span>
+
+            <strong>
+              {valorPagoValido
+                ? formatarMoeda(
+                    Number(valorPago)
+                  )
+                : "—"}
+            </strong>
+          </div>
+
+          <div className="devolucao-confirmacao-linha devolucao-confirmacao-final">
+            <span>Situação após o registro</span>
+
+            <strong>
+              {aluguel ? "Encerrado" : "—"}
+            </strong>
+          </div>
+
+          <p>
+            Após a confirmação pelo servidor,
+            o aluguel será encerrado e o equipamento
+            ficará disponível para novas locações.
+          </p>
         </div>
 
-        {confirmado && (
+        {erro && (
           <div
-            className="devolucao-sucesso"
-            role="status"
+            className="devolucao-erro"
+            role="alert"
           >
-            Devolução simulada com sucesso! Nenhum dado
-            foi enviado ao servidor.
+            {erro}
           </div>
         )}
 
@@ -255,12 +602,13 @@ function RegistrarDevolucao() {
             className="devolucao-botao-secundario"
             onClick={limpar}
           >
-            Limpar
+            Limpar formulário
           </button>
 
           <button
             type="submit"
             className="devolucao-botao-principal"
+            disabled={!podeRegistrar}
           >
             Registrar devolução
           </button>

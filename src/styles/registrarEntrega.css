@@ -1,45 +1,121 @@
-
 .registrar-entrega-pagina {
   max-width: 1100px;
-  margin: 0 auto;
-  padding: 48px 24px 80px;
+  min-height: 80vh;
+  margin: 45px auto 80px;
+  padding: 0 25px;
 }
 
 .registrar-entrega-cabecalho {
-  margin-bottom: 32px;
+  margin-bottom: 35px;
 }
 
 .registrar-entrega-cabecalho h1 {
-  font-size: 36px;
-  font-weight: 700;
+  font-family: "Outfit", sans-serif;
+  font-size: clamp(32px, 4vw, 46px);
+  letter-spacing: -1px;
+  color: #45062e;
   margin: 12px 0;
 }
 
 .registrar-entrega-cabecalho p {
-  color: #64748b;
-  line-height: 1.6;
-  max-width: 650px;
+  color: #725a68;
+  line-height: 1.7;
+  max-width: 750px;
 }
+
+/* INDICADORES */
+
+.entrega-indicadores {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.entrega-indicador {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 25px;
+  border: 1px solid #ead8e3;
+  border-radius: 16px;
+  background: white;
+}
+
+.entrega-indicador span {
+  color: #725a68;
+  font-size: 14px;
+}
+
+.entrega-indicador strong {
+  font-family: "Outfit", sans-serif;
+  font-size: 36px;
+  color: #45062e;
+}
+
+.entrega-indicador:first-child strong {
+  color: #a16207;
+}
+
+.entrega-indicador:last-child strong {
+  color: #1d4ed8;
+}
+
+/* FORMULÁRIO */
 
 .registrar-entrega-painel {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
 }
 
-.registrar-entrega-painel h2 {
-  font-size: 20px;
-  margin: 0 0 24px;
-  color: #0f172a;
+.entrega-etapa {
+  padding: 30px;
+  border: 1px solid #ead8e3;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 8px 24px #45062e08;
+}
+
+.entrega-etapa-titulo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.entrega-etapa-titulo h2 {
+  font-family: "Outfit", sans-serif;
+  font-size: 25px;
+  color: #45062e;
+  margin: 0;
+}
+
+.entrega-numero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #7f055f;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.entrega-descricao {
+  color: #725a68;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 25px;
 }
 
 .entrega-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
-  margin-bottom: 32px;
 }
 
 .entrega-campo {
@@ -48,7 +124,7 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #334155;
+  color: #45062e;
 }
 
 .entrega-campo-largo {
@@ -56,110 +132,269 @@
 }
 
 .entrega-campo input,
-.entrega-campo select,
-.entrega-campo textarea {
+.entrega-campo select {
   width: 100%;
+  min-height: 46px;
   box-sizing: border-box;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  border: 1px solid #d5becd;
+  border-radius: 10px;
   padding: 12px 14px;
   font: inherit;
   font-weight: 400;
-  background: #ffffff;
-  color: #0f172a;
+  background: #fffbfd;
+  color: #45062e;
+  outline: none;
 }
 
 .entrega-campo input:focus,
-.entrega-campo select:focus,
-.entrega-campo textarea:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+.entrega-campo select:focus {
+  border-color: #7f055f;
+  box-shadow: 0 0 0 3px #7f055f18;
 }
 
+.entrega-campo input:disabled,
+.entrega-campo select:disabled {
+  background: #f5eff3;
+  color: #9b8793;
+  cursor: not-allowed;
+}
+
+/* RESUMO DOS DADOS */
+
 .entrega-resumo {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 32px;
+  background: #fffbfd;
+  border: 1px solid #ead8e3;
+  border-radius: 14px;
+  padding: 25px;
+  margin-top: 25px;
+}
+
+.entrega-resumo-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 25px;
 }
 
 .entrega-resumo h3 {
-  font-size: 17px;
+  font-family: "Outfit", sans-serif;
+  font-size: 20px;
+  color: #45062e;
   margin: 0 0 20px;
+}
+
+.entrega-resumo-cabecalho h3 {
+  margin: 0;
 }
 
 .entrega-resumo-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: 25px;
 }
 
 .entrega-resumo-grid div {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .entrega-resumo-grid span {
   font-size: 13px;
-  color: #64748b;
+  color: #725a68;
 }
 
 .entrega-resumo-grid strong {
   font-size: 15px;
-  color: #0f172a;
+  color: #45062e;
+  font-weight: 600;
   overflow-wrap: anywhere;
+}
+
+.entrega-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 30px;
+  background: #fef3c7;
+  color: #a16207;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.entrega-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* LISTAGEM VAZIA E AVISOS */
+
+.entrega-vazio {
+  padding: 35px 20px;
+  margin-top: 25px;
+  border: 1px dashed #d5becd;
+  border-radius: 14px;
+  background: #fffbfd;
+  text-align: center;
+}
+
+.entrega-vazio h3 {
+  font-family: "Outfit", sans-serif;
+  font-size: 23px;
+  color: #45062e;
+  margin: 0 0 12px;
+}
+
+.entrega-vazio p {
+  color: #725a68;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.entrega-aviso {
+  padding: 18px;
+  margin-top: 15px;
+  border: 1px dashed #d5becd;
+  border-radius: 12px;
+  background: #fffbfd;
+  color: #725a68;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* CONFIRMAÇÃO */
+
+.entrega-confirmacao {
+  padding: 30px;
+  border: 1px solid #e5a4cb;
+  border-radius: 20px;
+  background: #f8e9ee;
+}
+
+.entrega-confirmacao h3 {
+  font-family: "Outfit", sans-serif;
+  font-size: 26px;
+  color: #45062e;
+  margin: 0 0 20px;
+}
+
+.entrega-confirmacao-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 0;
+  color: #725a68;
+  font-size: 15px;
+}
+
+.entrega-confirmacao-linha strong {
+  color: #45062e;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.entrega-confirmacao-final {
+  margin-top: 15px;
+  padding-top: 20px;
+  border-top: 1px solid #e5a4cb;
+  font-weight: 600;
+}
+
+.entrega-confirmacao-final strong {
+  color: #7f055f;
+}
+
+.entrega-confirmacao p {
+  margin: 20px 0 0;
+  color: #725a68;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* MENSAGENS */
+
+.entrega-erro {
+  padding: 16px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
 }
 
 .entrega-sucesso {
   padding: 16px;
-  background: #ecfdf5;
   border: 1px solid #a7f3d0;
-  border-radius: 8px;
+  border-radius: 10px;
+  background: #ecfdf5;
   color: #047857;
-  margin-bottom: 24px;
+  font-size: 14px;
 }
+
+/* BOTÕES */
 
 .entrega-acoes {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 15px;
   flex-wrap: wrap;
 }
 
 .entrega-botao-secundario,
 .entrega-botao-principal {
-  border-radius: 8px;
-  padding: 12px 22px;
+  border-radius: 10px;
+  padding: 13px 22px;
   font: inherit;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 .entrega-botao-secundario {
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #334155;
+  background: transparent;
+  border: 1px solid #7f055f;
+  color: #7f055f;
+}
+
+.entrega-botao-secundario:hover {
+  background: #f8e9ee;
 }
 
 .entrega-botao-principal {
-  background: #4f46e5;
-  border: 1px solid #4f46e5;
-  color: #ffffff;
+  background: #7f055f;
+  border: 1px solid #7f055f;
+  color: white;
 }
 
-.entrega-botao-principal:hover {
-  background: #4338ca;
+.entrega-botao-principal:hover:not(:disabled) {
+  background: #45062e;
+  border-color: #45062e;
 }
+
+.entrega-botao-principal:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* RESPONSIVIDADE */
 
 @media (max-width: 640px) {
   .registrar-entrega-pagina {
-    padding: 24px 16px 48px;
+    margin-top: 30px;
+    padding: 0 16px;
   }
 
-  .registrar-entrega-painel {
+  .entrega-etapa,
+  .entrega-confirmacao {
     padding: 20px;
   }
 
@@ -168,7 +403,31 @@
     grid-template-columns: 1fr;
   }
 
-  .registrar-entrega-cabecalho h1 {
+  .entrega-indicadores {
+    gap: 12px;
+  }
+
+  .entrega-indicador {
+    padding: 18px;
+  }
+
+  .entrega-indicador strong {
     font-size: 28px;
+  }
+
+  .entrega-etapa-titulo h2 {
+    font-size: 20px;
+  }
+
+  .entrega-acoes {
+    flex-direction: column;
+  }
+
+  .entrega-acoes button {
+    width: 100%;
+  }
+
+  .entrega-confirmacao-linha {
+    font-size: 14px;
   }
 }

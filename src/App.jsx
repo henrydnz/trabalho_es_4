@@ -9,6 +9,7 @@ import Clientes from "./pages/Clientes";
 import Equipamentos from "./pages/Equipamentos";
 import NovoAluguel from "./pages/NovoAluguel";
 import MeusAlugueis from "./pages/MeusAlugueis";
+import Alugueis from "./pages/Alugueis";
 import RegistrarEntrega from "./pages/RegistrarEntrega";
 import RegistrarDevolucao from "./pages/RegistrarDevolucao";
 
@@ -51,18 +52,12 @@ function obterAtorInicial() {
     : "cliente";
 }
 
-function PaginaProvisoria({ titulo }) {
-  return (
-    <section className="pagina-placeholder">
-      <h1>{titulo}</h1>
-      <p>Esta funcionalidade está em desenvolvimento.</p>
-    </section>
-  );
-}
-
 function App() {
-  const [pagina, setPaginaAtual] = useState(obterPaginaInicial);
-  const [ator, setAtor] = useState(obterAtorInicial);
+  const [pagina, setPaginaAtual] =
+    useState(obterPaginaInicial);
+
+  const [ator, setAtor] =
+    useState(obterAtorInicial);
 
   function setPagina(novaPagina) {
     if (
@@ -72,7 +67,8 @@ function App() {
       return;
     }
 
-    const caminho = novaPagina === "Debug" ? "/debug" : "/";
+    const caminho =
+      novaPagina === "Debug" ? "/debug" : "/";
 
     if (window.location.pathname !== caminho) {
       window.history.pushState({}, "", caminho);
@@ -98,10 +94,16 @@ function App() {
       setPaginaAtual(obterPaginaInicial());
     }
 
-    window.addEventListener("popstate", verificarUrl);
+    window.addEventListener(
+      "popstate",
+      verificarUrl
+    );
 
     return () => {
-      window.removeEventListener("popstate", verificarUrl);
+      window.removeEventListener(
+        "popstate",
+        verificarUrl
+      );
     };
   }, []);
 
@@ -111,7 +113,12 @@ function App() {
         return <Enderecos />;
 
       case "Início":
-        return <Home setPagina={setPagina} ator={ator} />;
+        return (
+          <Home
+            setPagina={setPagina}
+            ator={ator}
+          />
+        );
 
       case "Meu Cadastro":
         return <MeuCadastro />;
@@ -123,10 +130,19 @@ function App() {
         return <Equipamentos />;
 
       case "Meus Aluguéis":
-        return <MeusAlugueis setPagina={setPagina} />;
+        return (
+          <MeusAlugueis
+            setPagina={setPagina}
+          />
+        );
 
       case "Aluguéis":
-        return <PaginaProvisoria titulo="Aluguéis" />;
+        return (
+          <Alugueis
+            ator={ator}
+            setPagina={setPagina}
+          />
+        );
 
       case "Registrar Aluguel":
         return <NovoAluguel />;
@@ -138,7 +154,12 @@ function App() {
         return <RegistrarDevolucao />;
 
       default:
-        return <Home setPagina={setPagina} ator={ator} />;
+        return (
+          <Home
+            setPagina={setPagina}
+            ator={ator}
+          />
+        );
     }
   }
 
