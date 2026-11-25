@@ -1,33 +1,6 @@
 import { useState } from "react";
+import { obterTiposEquipamento } from "../services/equipamentosService";
 import "../styles/novoAluguel.css";
-
-const tiposEquipamento = [
-  {
-    idTipoEquipamento: 1,
-    nome: "Furadeira de impacto",
-    valorDiaria: 35,
-  },
-  {
-    idTipoEquipamento: 2,
-    nome: "Martelete rompedor",
-    valorDiaria: 85,
-  },
-  {
-    idTipoEquipamento: 3,
-    nome: "Betoneira",
-    valorDiaria: 120,
-  },
-  {
-    idTipoEquipamento: 4,
-    nome: "Lavadora de alta pressão",
-    valorDiaria: 65,
-  },
-  {
-    idTipoEquipamento: 5,
-    nome: "Serra circular",
-    valorDiaria: 45,
-  },
-];
 
 const enderecoInicial = {
   cep: "",
@@ -101,7 +74,7 @@ function formatarEndereco(endereco) {
     `CEP: ${endereco.cep}`,
   ]
     .filter(Boolean)
-    .join(" • ");
+    .join(" - ");
 }
 
 function calcularDias(dataInicio, dataDevolucao) {
@@ -153,6 +126,8 @@ function obterAlugueis() {
 }
 
 function NovoAluguel() {
+  const [tiposEquipamento] = useState(obterTiposEquipamento);
+
   const [documento, setDocumento] = useState("");
   const [cliente, setCliente] = useState(null);
 
@@ -248,6 +223,11 @@ function NovoAluguel() {
     setErro("");
     setSucesso("");
 
+    if (tiposEquipamento.length === 0) {
+      setErro("Nenhum tipo de equipamento disponível.");
+      return;
+    }
+
     if (!cliente) {
       setErro("Localize o cadastro do cliente.");
       return;
@@ -262,6 +242,7 @@ function NovoAluguel() {
       setErro(
         "A devolução deve acontecer depois da data de início."
       );
+
       return;
     }
 
@@ -269,6 +250,7 @@ function NovoAluguel() {
       setErro(
         "A data de início não pode estar no passado."
       );
+
       return;
     }
 
@@ -306,6 +288,7 @@ function NovoAluguel() {
       setErro(
         "Preencha todos os campos obrigatórios do endereço."
       );
+
       return;
     }
 
@@ -468,7 +451,7 @@ function NovoAluguel() {
           {cliente && (
             <div className="aluguel-cliente-encontrado">
               <span className="aluguel-cliente-status">
-                ✓ Cliente localizado
+                Cliente localizado
               </span>
 
               <h3>{cliente.nome}</h3>
@@ -512,10 +495,13 @@ function NovoAluguel() {
               onChange={(evento) =>
                 setTipoSelecionado(evento.target.value)
               }
+              disabled={tiposEquipamento.length === 0}
               required
             >
               <option value="">
-                Selecione um tipo de equipamento
+                {tiposEquipamento.length === 0
+                  ? "Nenhum tipo de equipamento disponível"
+                  : "Selecione um tipo de equipamento"}
               </option>
 
               {tiposEquipamento.map((item) => (
@@ -523,12 +509,19 @@ function NovoAluguel() {
                   key={item.idTipoEquipamento}
                   value={item.idTipoEquipamento}
                 >
-                  {item.nome} —{" "}
+                  {item.nome} -{" "}
                   {formatarMoeda(item.valorDiaria)}/dia
                 </option>
               ))}
             </select>
           </label>
+
+          {tiposEquipamento.length === 0 && (
+            <div className="aluguel-aviso">
+              Não há tipos de equipamentos disponíveis
+              para seleção no momento.
+            </div>
+          )}
 
           {tipo && (
             <div className="aluguel-equipamento-info">
@@ -698,7 +691,7 @@ function NovoAluguel() {
                       name="numero"
                       value={enderecoEntrega.numero}
                       onChange={atualizarEndereco}
-                      placeholder="123"
+                      placeholder="Número do endereço"
                       required
                     />
                   </label>
@@ -747,7 +740,7 @@ function NovoAluguel() {
                       name="nomeEstado"
                       value={enderecoEntrega.nomeEstado}
                       onChange={atualizarEndereco}
-                      placeholder="Paraná"
+                      placeholder="Nome do estado"
                       required
                     />
                   </label>
@@ -760,7 +753,7 @@ function NovoAluguel() {
                       name="uf"
                       value={enderecoEntrega.uf}
                       onChange={atualizarEndereco}
-                      placeholder="PR"
+                      placeholder="Sigla do estado"
                       maxLength={2}
                       required
                     />
@@ -837,6 +830,15 @@ function NovoAluguel() {
           <button
             type="submit"
             className="botao-principal"
+            disabled={tiposEquipamento.length === 0}
+            style={
+              tiposEquipamento.length === 0
+                ? {
+                    opacity: 0.5,
+                    cursor: "not-allowed",
+                  }
+                : undefined
+            }
           >
             Confirmar solicitação
 
