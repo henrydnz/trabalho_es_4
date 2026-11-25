@@ -73,7 +73,7 @@ public class AluguelService {
 
         aluguel.setCliente(cliente);
 
-        return aluguelDao.cadastrarAluguel();
+        return aluguelDao.cadastrarAluguel(aluguel);
     }
 
     public Aluguel registrarEntregaAluguel(Integer id, LocalDateTime dtEntrega, Integer idEquipamento) {

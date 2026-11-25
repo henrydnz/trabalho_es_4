@@ -37,7 +37,7 @@ public class ClienteController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Pessoa> buscarClientePorID(@PathVariable String id) {
+    public ResponseEntity<Pessoa> buscarClientePorID(@PathVariable Integer id) {
         Pessoa pessoa = clienteService.buscarClientePorID(id);
 
         if (pessoa == null)
