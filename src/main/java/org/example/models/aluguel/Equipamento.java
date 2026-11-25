@@ -7,6 +7,7 @@ public class Equipamento implements Serializable {
     private boolean isAlugado;
     private TipoEquipamento tipoEquipamento;
     private Modelo modelo;
+    private Integer idEquipamento;
 
     public Equipamento() {}
 
@@ -47,5 +48,13 @@ public class Equipamento implements Serializable {
 
     public void setModelo(Modelo modelo) {
         this.modelo = modelo;
+    }
+
+    public Integer getIdEquipamento() {
+        return idEquipamento;
+    }
+
+    public void setIdEquipamento(Integer idEquipamento) {
+        this.idEquipamento = idEquipamento;
     }
 }

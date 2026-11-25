@@ -18,6 +18,7 @@ public class EquipamentoService {
 
     public Equipamento cadastrarEquipamento(Equipamento equipamento){
         if(equipamento == null
+                || equipamento.getIdEquipamento() == null
                 || equipamento.getNumPatrimonio() <= 0
                 || equipamento.getTipoEquipamento() == null
                 || equipamento.getTipoEquipamento().getNome() == null
