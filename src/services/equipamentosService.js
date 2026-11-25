@@ -10,7 +10,7 @@ function normalizarTipo(tipo) {
 
 function normalizarEquipamento(equipamento) {
   return {
-    idEquipamento: equipamento.numPatrimonio,
+    idEquipamento: equipamento.idEquipamento,
     numeroPatrimonio: equipamento.numPatrimonio,
     isAlugado: equipamento.alugado,
     idTipoEquipamento: equipamento.tipoEquipamento?.nome,
@@ -43,17 +43,13 @@ async function consultarLista(caminho) {
 }
 
 export async function obterTiposEquipamento() {
-  const tipos = await consultarLista(
-    "/equipamentos/tipos"
-  );
+  const tipos = await consultarLista("/equipamentos/tipos");
 
   return tipos.map(normalizarTipo);
 }
 
 export async function obterEquipamentos() {
-  const equipamentos = await consultarLista(
-    "/equipamentos"
-  );
+  const equipamentos = await consultarLista("/equipamentos");
 
   return equipamentos.map(normalizarEquipamento);
 }
@@ -77,12 +73,9 @@ export async function buscarEquipamentoPorId(id) {
 export async function buscarTipoPorId(id) {
   const tipos = await obterTiposEquipamento();
 
-  return (
-    tipos.find(
-      (tipo) =>
-        String(tipo.idTipoEquipamento) === String(id)
-    ) || null
-  );
+  return tipos.find(
+    (tipo) => String(tipo.idTipoEquipamento) === String(id)
+  ) || null;
 }
 
 export async function obterEquipamentosDisponiveis(
@@ -100,7 +93,7 @@ export async function obterEquipamentosDisponiveis(
         (
           idTipoEquipamento == null ||
           String(equipamento.idTipoEquipamento) ===
-            String(idTipoEquipamento)
+          String(idTipoEquipamento)
         )
     );
 }

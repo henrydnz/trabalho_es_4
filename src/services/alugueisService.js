@@ -75,11 +75,11 @@ export function normalizarAluguel(aluguel) {
     tipoEquipamento: tipo?.nome ?? "",
     valorDiaria: tipo?.valorDiaria ?? null,
 
-    idEquipamento: equipamento?.numPatrimonio ?? null,
+    idEquipamento: equipamento?.idEquipamento ?? null,
 
     equipamento: equipamento
       ? {
-          idEquipamento: equipamento.numPatrimonio,
+          idEquipamento: equipamento.idEquipamento,
           numeroPatrimonio: equipamento.numPatrimonio,
           modelo: equipamento.modelo?.nome,
           fabricante: equipamento.modelo?.fabricante?.nome,
