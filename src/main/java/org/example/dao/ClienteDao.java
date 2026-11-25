@@ -187,7 +187,13 @@ public class ClienteDao {
             SELECT * FROM "Cliente"
             WHERE""" + where,
 
-            ResultSet::next,
+            rs -> {
+                if(rs.next()){
+                    cliente.setIdPessoa(rs.getInt("idPessoa"));
+                    return true;
+                }
+                return false;
+            },
             cliente.getDocumento()
         );
     }
@@ -265,6 +271,8 @@ public class ClienteDao {
 
         cadastrarEmails(idCliente, cliente.getEmailList());
         cadastrarTelefones(idCliente, cliente.getTelefoneList());
+
+        cliente.setIdPessoa(idCliente);
 
         return cliente;
     }
