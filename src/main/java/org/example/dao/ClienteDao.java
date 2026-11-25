@@ -188,7 +188,7 @@ public class ClienteDao {
             WHERE""" + where,
 
             rs -> {
-                if(rs.next()) return rs.getInt("idPessoa");
+                if(rs.next()) return rs.getInt("idCliente");
                 return null;
             },
             cliente.getDocumento()
