@@ -1,26 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   obterEquipamentosDisponiveis,
 } from "../services/equipamentosService";
 
+import {
+  obterAlugueis,
+} from "../services/alugueisService";
+
+import { requisicao } from "../services/api";
+
 import "../styles/registrarEntrega.css";
-
-function obterAlugueis() {
-  try {
-    const dados = JSON.parse(
-      localStorage.getItem("equipass-alugueis") || "[]"
-    );
-
-    return Array.isArray(dados) ? dados : [];
-  } catch {
-    return [];
-  }
-}
 
 function formatarData(valor) {
   if (!valor) {
     return "Não informado";
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+    const [ano, mes, dia] = valor.split("-");
+    return `${dia}/${mes}/${ano}`;
   }
 
   const data = new Date(valor);
@@ -36,15 +35,22 @@ function formatarData(valor) {
 }
 
 function formatarEndereco(endereco) {
-  if (!endereco) {
+  if (!endereco?.cep) {
     return "Endereço não informado";
   }
 
   return [
-    `${endereco.tipoLogradouro} ${endereco.logradouro}, ${endereco.numero}`,
+    [
+      endereco.tipoLogradouro,
+      endereco.logradouro,
+      endereco.numero,
+    ].filter(Boolean).join(" "),
     endereco.complemento,
     endereco.bairro,
-    `${endereco.cidade} - ${endereco.uf}`,
+    [
+      endereco.cidade,
+      endereco.uf,
+    ].filter(Boolean).join(" - "),
     `CEP: ${endereco.cep}`,
   ]
     .filter(Boolean)
@@ -64,10 +70,13 @@ function CampoResumo({ titulo, valor }) {
 }
 
 function RegistrarEntrega() {
-  const [alugueis, setAlugueis] =
-    useState(obterAlugueis);
+  const [alugueis, setAlugueis] = useState([]);
+
+  const [equipamentosDisponiveis, setEquipamentosDisponiveis] =
+    useState([]);
 
   const [aluguelId, setAluguelId] = useState("");
+
   const [equipamentoId, setEquipamentoId] =
     useState("");
 
@@ -75,6 +84,20 @@ function RegistrarEntrega() {
     useState("");
 
   const [erro, setErro] = useState("");
+  const [erroLista, setErroLista] = useState("");
+  const [erroEquipamentos, setErroEquipamentos] =
+    useState("");
+
+  const [sucesso, setSucesso] = useState("");
+
+  const [carregando, setCarregando] =
+    useState(true);
+
+  const [carregandoEquipamentos, setCarregandoEquipamentos] =
+    useState(false);
+
+  const [registrando, setRegistrando] =
+    useState(false);
 
   const alugueisPendentes = alugueis.filter(
     (item) => item.situacao === "Solicitado"
@@ -85,46 +108,138 @@ function RegistrarEntrega() {
       String(item.idAluguel) === aluguelId
   );
 
-  const equipamentosDisponiveis = aluguel
-    ? obterEquipamentosDisponiveis(
-        aluguel.idTipoEquipamento
-      )
-    : [];
+  const tipoSolicitado =
+    aluguel?.idTipoEquipamento ??
+    aluguel?.tipoEquipamento;
 
-  const equipamento =
-    equipamentosDisponiveis.find(
-      (item) =>
-        String(item.idEquipamento) === equipamentoId
-    );
+  const equipamento = equipamentosDisponiveis.find(
+    (item) =>
+      String(item.idEquipamento) === equipamentoId
+  );
 
   const podeRegistrar =
     Boolean(aluguel) &&
     Boolean(equipamento) &&
-    Boolean(dataEntrega);
+    Boolean(dataEntrega) &&
+    !carregando &&
+    !carregandoEquipamentos &&
+    !registrando &&
+    !erroLista &&
+    !erroEquipamentos;
+
+  async function carregarAlugueis() {
+    setCarregando(true);
+    setErroLista("");
+
+    try {
+      const dados = await obterAlugueis();
+
+      setAlugueis(dados);
+    } catch (erro) {
+      console.error(erro);
+
+      setAlugueis([]);
+
+      setErroLista(
+        "Não foi possível consultar os aluguéis."
+      );
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  useEffect(() => {
+    carregarAlugueis();
+  }, []);
+
+  useEffect(() => {
+    let cancelado = false;
+
+    setEquipamentosDisponiveis([]);
+    setEquipamentoId("");
+    setErroEquipamentos("");
+
+    if (!aluguelId || tipoSolicitado == null) {
+      setCarregandoEquipamentos(false);
+
+      if (aluguelId) {
+        setErroEquipamentos(
+          "O tipo de equipamento não foi informado pelo servidor."
+        );
+      }
+
+      return;
+    }
+
+    async function carregarEquipamentos() {
+      setCarregandoEquipamentos(true);
+
+      try {
+        const dados =
+          await obterEquipamentosDisponiveis(
+            tipoSolicitado
+          );
+
+        if (!cancelado) {
+          setEquipamentosDisponiveis(dados);
+        }
+      } catch (erro) {
+        console.error(erro);
+
+        if (!cancelado) {
+          setErroEquipamentos(
+            "Não foi possível consultar os equipamentos disponíveis."
+          );
+        }
+      } finally {
+        if (!cancelado) {
+          setCarregandoEquipamentos(false);
+        }
+      }
+    }
+
+    carregarEquipamentos();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [aluguelId, tipoSolicitado]);
 
   function selecionarAluguel(evento) {
     setAluguelId(evento.target.value);
     setEquipamentoId("");
+    setEquipamentosDisponiveis([]);
     setDataEntrega("");
     setErro("");
+    setSucesso("");
+    setErroEquipamentos("");
   }
 
   function limpar() {
     setAluguelId("");
     setEquipamentoId("");
+    setEquipamentosDisponiveis([]);
     setDataEntrega("");
     setErro("");
+    setErroEquipamentos("");
+    setSucesso("");
   }
 
-  function atualizarLista() {
-    setAlugueis(obterAlugueis());
+  async function atualizarLista() {
     limpar();
+
+    await carregarAlugueis();
   }
 
-  function registrar(evento) {
+  async function registrar(evento) {
     evento.preventDefault();
 
+    if (registrando) {
+      return;
+    }
+
     setErro("");
+    setSucesso("");
 
     if (!aluguel) {
       setErro("Selecione um aluguel solicitado.");
@@ -157,7 +272,8 @@ function RegistrarEntrega() {
 
     if (
       aluguel.dataPedido &&
-      data < new Date(aluguel.dataPedido)
+      dataEntrega.slice(0, 10) <
+        String(aluguel.dataPedido).slice(0, 10)
     ) {
       setErro(
         "A entrega não pode ocorrer antes da solicitação."
@@ -165,9 +281,46 @@ function RegistrarEntrega() {
       return;
     }
 
-    setErro(
-      "O registro da entrega estará disponível após a integração com o servidor."
-    );
+    setRegistrando(true);
+
+    try {
+      const parametros = new URLSearchParams({
+        dtEntrega: dataEntrega,
+        idEquipamento: String(
+          equipamento.idEquipamento
+        ),
+      });
+
+      await requisicao(
+        `/alugueis/${aluguel.idAluguel}/entrega?${parametros}`,
+        {
+          method: "PUT",
+        }
+      );
+
+      const numeroAluguel = String(
+        aluguel.idAluguel
+      ).padStart(4, "0");
+
+      limpar();
+
+      setSucesso(
+        `Entrega do aluguel #${numeroAluguel} registrada com sucesso.`
+      );
+
+      await carregarAlugueis();
+
+      window.scrollTo(0, 0);
+    } catch (erro) {
+      console.error(erro);
+
+      setErro(
+        erro.message ||
+          "Não foi possível registrar a entrega."
+      );
+    } finally {
+      setRegistrando(false);
+    }
   }
 
   return (
@@ -186,12 +339,38 @@ function RegistrarEntrega() {
         </p>
       </div>
 
+      {sucesso && (
+        <div
+          className="entrega-aviso"
+          role="status"
+        >
+          {sucesso}
+        </div>
+      )}
+
+      {erroLista && (
+        <div className="entrega-erro" role="alert">
+          <p>{erroLista}</p>
+
+          <button
+            type="button"
+            className="entrega-botao-secundario"
+            onClick={atualizarLista}
+            disabled={carregando || registrando}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )}
+
       <div className="entrega-indicadores">
         <div className="entrega-indicador">
           <span>Entregas pendentes</span>
 
           <strong>
-            {alugueisPendentes.length}
+            {carregando || erroLista
+              ? "—"
+              : alugueisPendentes.length}
           </strong>
         </div>
 
@@ -199,12 +378,12 @@ function RegistrarEntrega() {
           <span>Equipamentos em locação</span>
 
           <strong>
-            {
-              alugueis.filter(
-                (item) =>
-                  item.situacao === "Em locação"
-              ).length
-            }
+            {carregando || erroLista
+              ? "—"
+              : alugueis.filter(
+                  (item) =>
+                    item.situacao === "Em locação"
+                ).length}
           </strong>
         </div>
       </div>
@@ -215,9 +394,7 @@ function RegistrarEntrega() {
       >
         <section className="entrega-etapa">
           <div className="entrega-etapa-titulo">
-            <span className="entrega-numero">
-              1
-            </span>
+            <span className="entrega-numero">1</span>
 
             <h2>Identificação do aluguel</h2>
           </div>
@@ -235,53 +412,61 @@ function RegistrarEntrega() {
                 value={aluguelId}
                 onChange={selecionarAluguel}
                 disabled={
+                  carregando ||
+                  registrando ||
+                  Boolean(erroLista) ||
                   alugueisPendentes.length === 0
                 }
                 required
               >
                 <option value="">
-                  {alugueisPendentes.length === 0
-                    ? "Nenhum aluguel aguardando entrega"
-                    : "Selecione um aluguel"}
+                  {carregando
+                    ? "Carregando aluguéis..."
+                    : erroLista
+                      ? "Erro na consulta"
+                      : alugueisPendentes.length === 0
+                        ? "Nenhum aluguel aguardando entrega"
+                        : "Selecione um aluguel"}
                 </option>
 
-                {alugueisPendentes.map(
-                  (item) => (
-                    <option
-                      key={item.idAluguel}
-                      value={item.idAluguel}
-                    >
-                      #{String(item.idAluguel)
-                        .padStart(4, "0")}
-                      {" - "}
-                      {item.nomeCliente}
-                      {" - "}
-                      {item.tipoEquipamento}
-                    </option>
-                  )
-                )}
+                {alugueisPendentes.map((item) => (
+                  <option
+                    key={item.idAluguel}
+                    value={item.idAluguel}
+                  >
+                    #{String(item.idAluguel)
+                      .padStart(4, "0")}
+                    {" - "}
+                    {item.nomeCliente}
+                    {" - "}
+                    {item.tipoEquipamento}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
 
-          {alugueisPendentes.length === 0 && (
-            <div className="entrega-vazio">
-              <h3>Nenhuma entrega pendente</h3>
+          {!carregando &&
+            !erroLista &&
+            alugueisPendentes.length === 0 && (
+              <div className="entrega-vazio">
+                <h3>Nenhuma entrega pendente</h3>
 
-              <p>
-                Não há solicitações de aluguel
-                aguardando entrega.
-              </p>
+                <p>
+                  Não há solicitações de aluguel
+                  aguardando entrega.
+                </p>
 
-              <button
-                type="button"
-                className="entrega-botao-secundario"
-                onClick={atualizarLista}
-              >
-                Atualizar lista
-              </button>
-            </div>
-          )}
+                <button
+                  type="button"
+                  className="entrega-botao-secundario"
+                  onClick={atualizarLista}
+                  disabled={registrando}
+                >
+                  Atualizar lista
+                </button>
+              </div>
+            )}
 
           {aluguel && (
             <div className="entrega-resumo">
@@ -346,9 +531,7 @@ function RegistrarEntrega() {
 
         <section className="entrega-etapa">
           <div className="entrega-etapa-titulo">
-            <span className="entrega-numero">
-              2
-            </span>
+            <span className="entrega-numero">2</span>
 
             <h2>Equipamento físico</h2>
           </div>
@@ -375,17 +558,24 @@ function RegistrarEntrega() {
                       setEquipamentoId(
                         evento.target.value
                       );
+
                       setErro("");
                     }}
                     disabled={
+                      carregandoEquipamentos ||
+                      registrando ||
                       equipamentosDisponiveis.length === 0
                     }
                     required
                   >
                     <option value="">
-                      {equipamentosDisponiveis.length === 0
-                        ? "Nenhum equipamento disponível"
-                        : "Selecione um equipamento"}
+                      {carregandoEquipamentos
+                        ? "Consultando equipamentos..."
+                        : erroEquipamentos
+                          ? "Erro na consulta"
+                          : equipamentosDisponiveis.length === 0
+                            ? "Nenhum equipamento disponível"
+                            : "Selecione um equipamento"}
                     </option>
 
                     {equipamentosDisponiveis.map(
@@ -406,18 +596,40 @@ function RegistrarEntrega() {
                 </label>
               </div>
 
-              {equipamentosDisponiveis.length === 0 && (
-                <div className="entrega-aviso">
-                  Não há equipamentos disponíveis
-                  do tipo solicitado neste aluguel.
+              {erroEquipamentos && (
+                <div
+                  className="entrega-erro"
+                  role="alert"
+                >
+                  {erroEquipamentos}
+
+                  <p>
+                    Atualize a lista e selecione
+                    novamente o aluguel.
+                  </p>
+
+                  <button
+                    type="button"
+                    className="entrega-botao-secundario"
+                    onClick={atualizarLista}
+                  >
+                    Atualizar lista
+                  </button>
                 </div>
               )}
 
+              {!carregandoEquipamentos &&
+                !erroEquipamentos &&
+                equipamentosDisponiveis.length === 0 && (
+                  <div className="entrega-aviso">
+                    Não há equipamentos disponíveis
+                    do tipo solicitado neste aluguel.
+                  </div>
+                )}
+
               {equipamento && (
                 <div className="entrega-resumo">
-                  <h3>
-                    Equipamento selecionado
-                  </h3>
+                  <h3>Equipamento selecionado</h3>
 
                   <div className="entrega-resumo-grid">
                     <CampoResumo
@@ -450,9 +662,7 @@ function RegistrarEntrega() {
 
         <section className="entrega-etapa">
           <div className="entrega-etapa-titulo">
-            <span className="entrega-numero">
-              3
-            </span>
+            <span className="entrega-numero">3</span>
 
             <h2>Dados da entrega</h2>
           </div>
@@ -469,11 +679,16 @@ function RegistrarEntrega() {
               <input
                 type="datetime-local"
                 value={dataEntrega}
-                disabled={!aluguel || !equipamento}
+                disabled={
+                  !aluguel ||
+                  !equipamento ||
+                  registrando
+                }
                 onChange={(evento) => {
                   setDataEntrega(
                     evento.target.value
                   );
+
                   setErro("");
                 }}
                 required
@@ -516,7 +731,7 @@ function RegistrarEntrega() {
             <span>Patrimônio</span>
 
             <strong>
-              {equipamento?.numeroPatrimonio || "—"}
+              {equipamento?.numeroPatrimonio ?? "—"}
             </strong>
           </div>
 
@@ -546,10 +761,7 @@ function RegistrarEntrega() {
         </div>
 
         {erro && (
-          <div
-            className="entrega-erro"
-            role="alert"
-          >
+          <div className="entrega-erro" role="alert">
             {erro}
           </div>
         )}
@@ -559,6 +771,7 @@ function RegistrarEntrega() {
             type="button"
             className="entrega-botao-secundario"
             onClick={limpar}
+            disabled={registrando}
           >
             Limpar formulário
           </button>
@@ -568,7 +781,9 @@ function RegistrarEntrega() {
             className="entrega-botao-principal"
             disabled={!podeRegistrar}
           >
-            Registrar entrega
+            {registrando
+              ? "Registrando entrega..."
+              : "Registrar entrega"}
           </button>
         </div>
       </form>

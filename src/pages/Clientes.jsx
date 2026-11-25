@@ -1,18 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import MeuCadastro from "./MeuCadastro";
+
+import {
+  obterClientes,
+  buscarClientePorId,
+} from "../services/clientesService";
+
 import "../styles/clientes.css";
-
-function obterClientes() {
-  try {
-    const dados = JSON.parse(
-      localStorage.getItem("equipass-clientes") || "[]"
-    );
-
-    return Array.isArray(dados) ? dados : [];
-  } catch {
-    return [];
-  }
-}
 
 function somenteNumeros(valor) {
   return String(valor ?? "").replace(/\D/g, "");
@@ -26,24 +21,80 @@ function normalizarTexto(valor) {
     .trim();
 }
 
+function formatarDocumento(valor) {
+  const numeros = somenteNumeros(valor);
+
+  if (numeros.length === 11) {
+    return numeros.replace(
+      /(\d{3})(\d{3})(\d{3})(\d{2})/,
+      "$1.$2.$3-$4"
+    );
+  }
+
+  if (numeros.length === 14) {
+    return numeros.replace(
+      /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
+      "$1.$2.$3/$4-$5"
+    );
+  }
+
+  return valor;
+}
+
 function CampoDetalhe({ titulo, valor }) {
   return (
     <div className="cliente-campo-detalhe">
       <small>{titulo}</small>
-      <strong>{valor || "Não informado"}</strong>
+
+      <strong>
+        {valor || "Não informado"}
+      </strong>
     </div>
   );
 }
 
 function Clientes() {
-  const [clientes, setClientes] = useState(obterClientes);
+  const [clientes, setClientes] = useState([]);
+
   const [busca, setBusca] = useState("");
   const [filtro, setFiltro] = useState("todos");
+
   const [clienteSelecionado, setClienteSelecionado] =
     useState(null);
 
   const [exibirCadastro, setExibirCadastro] =
     useState(false);
+
+  const [carregando, setCarregando] =
+    useState(true);
+
+  const [erro, setErro] = useState("");
+
+  async function carregarClientes() {
+    setCarregando(true);
+    setErro("");
+
+    try {
+      const dados = await obterClientes();
+
+      setClientes(dados);
+    } catch (erro) {
+      console.error(erro);
+
+      setClientes([]);
+
+      setErro(
+        "Não foi possível consultar os clientes. " +
+        "Verifique a conexão com o servidor."
+      );
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  useEffect(() => {
+    carregarClientes();
+  }, []);
 
   const quantidadeFisica = clientes.filter(
     (cliente) => cliente.isFisica
@@ -56,6 +107,7 @@ function Clientes() {
   const clientesFiltrados = clientes
     .filter((cliente) => {
       const termo = normalizarTexto(busca);
+
       const documentoBusca = somenteNumeros(busca);
 
       const correspondeNome = normalizarTexto(
@@ -75,8 +127,14 @@ function Clientes() {
 
       const correspondeTipo =
         filtro === "todos" ||
-        (filtro === "fisica" && cliente.isFisica) ||
-        (filtro === "juridica" && !cliente.isFisica);
+        (
+          filtro === "fisica" &&
+          cliente.isFisica
+        ) ||
+        (
+          filtro === "juridica" &&
+          !cliente.isFisica
+        );
 
       return correspondeBusca && correspondeTipo;
     })
@@ -88,20 +146,47 @@ function Clientes() {
     );
 
   function abrirCadastro() {
+    setErro("");
     setExibirCadastro(true);
+
     window.scrollTo(0, 0);
   }
 
   function voltarLista() {
-    setClientes(obterClientes());
     setClienteSelecionado(null);
     setExibirCadastro(false);
+
+    carregarClientes();
+
     window.scrollTo(0, 0);
   }
 
-  function visualizarCliente(cliente) {
-    setClienteSelecionado(cliente);
-    window.scrollTo(0, 0);
+  async function visualizarCliente(cliente) {
+    setCarregando(true);
+    setErro("");
+
+    try {
+      const dados = await buscarClientePorId(
+        cliente.idCliente
+      );
+
+      if (!dados) {
+        setErro("Cliente não encontrado.");
+        return;
+      }
+
+      setClienteSelecionado(dados);
+
+      window.scrollTo(0, 0);
+    } catch (erro) {
+      console.error(erro);
+
+      setErro(
+        "Não foi possível consultar os dados do cliente."
+      );
+    } finally {
+      setCarregando(false);
+    }
   }
 
   if (exibirCadastro) {
@@ -119,6 +204,30 @@ function Clientes() {
 
         <MeuCadastro />
       </>
+    );
+  }
+
+  if (carregando) {
+    return (
+      <section className="clientes-pagina">
+        <div className="clientes-cabecalho">
+          <span className="secao-etiqueta">
+            GERENCIAMENTO DE CLIENTES
+          </span>
+
+          <h1>Clientes</h1>
+        </div>
+
+        <section className="clientes-bloco">
+          <div className="clientes-vazio">
+            <h3>Carregando clientes...</h3>
+
+            <p>
+              Aguarde enquanto consultamos o servidor.
+            </p>
+          </div>
+        </section>
+      </section>
     );
   }
 
@@ -177,8 +286,12 @@ function Clientes() {
             />
 
             <CampoDetalhe
-              titulo={cliente.isFisica ? "CPF" : "CNPJ"}
-              valor={cliente.documento}
+              titulo={
+                cliente.isFisica ? "CPF" : "CNPJ"
+              }
+              valor={formatarDocumento(
+                cliente.documento
+              )}
             />
           </div>
         </section>
@@ -223,6 +336,13 @@ function Clientes() {
 
         <section className="clientes-bloco">
           <h2>Endereço principal</h2>
+
+          {endereco.idEndereco == null && (
+            <p className="clientes-aviso">
+              Os dados completos do endereço não
+              foram retornados pelo servidor.
+            </p>
+          )}
 
           <div className="clientes-detalhes-grid">
             <CampoDetalhe
@@ -272,28 +392,13 @@ function Clientes() {
           </div>
         </section>
 
-        <div className="clientes-aviso">
-          Para atualizar este cadastro, consulte o
-          documento {cliente.documento} no formulário
-          de gerenciamento de cadastro.
-        </div>
-
         <div className="clientes-acoes">
           <button
             type="button"
-            className="clientes-botao-secundario"
+            className="botao-principal"
             onClick={voltarLista}
           >
-            Voltar
-          </button>
-
-          <button
-            type="button"
-            className="botao-principal"
-            onClick={abrirCadastro}
-          >
-            Atualizar cadastro
-            <span>→</span>
+            Voltar para clientes
           </button>
         </div>
       </section>
@@ -310,191 +415,236 @@ function Clientes() {
         <h1>Clientes</h1>
 
         <p>
-          Consulte e gerencie os clientes cadastrados
+          Consulte os clientes cadastrados
           no sistema.
         </p>
       </div>
 
-      <div className="clientes-indicadores">
-        <button
-          type="button"
-          className={`clientes-indicador ${
-            filtro === "todos" ? "ativo" : ""
-          }`}
-          onClick={() => setFiltro("todos")}
+      {erro ? (
+        <section
+          className="clientes-bloco"
+          role="alert"
         >
-          <span>Total de clientes</span>
-          <strong>{clientes.length}</strong>
-          <small>Clientes cadastrados</small>
-        </button>
+          <div className="clientes-vazio">
+            <h3>Erro na consulta</h3>
 
-        <button
-          type="button"
-          className={`clientes-indicador ${
-            filtro === "fisica" ? "ativo" : ""
-          }`}
-          onClick={() => setFiltro("fisica")}
-        >
-          <span>Pessoas físicas</span>
-          <strong>{quantidadeFisica}</strong>
-          <small>Cadastros individuais</small>
-        </button>
+            <p>{erro}</p>
 
-        <button
-          type="button"
-          className={`clientes-indicador ${
-            filtro === "juridica" ? "ativo" : ""
-          }`}
-          onClick={() => setFiltro("juridica")}
-        >
-          <span>Pessoas jurídicas</span>
-          <strong>{quantidadeJuridica}</strong>
-          <small>Empresas cadastradas</small>
-        </button>
-      </div>
+            <button
+              type="button"
+              className="clientes-botao-secundario"
+              onClick={carregarClientes}
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </section>
+      ) : (
+        <>
+          <div className="clientes-indicadores">
+            <button
+              type="button"
+              className={`clientes-indicador ${
+                filtro === "todos" ? "ativo" : ""
+              }`}
+              onClick={() => setFiltro("todos")}
+            >
+              <span>Total de clientes</span>
 
-      <section className="clientes-bloco">
-        <div className="clientes-lista-cabecalho">
-          <div>
-            <h2>Clientes cadastrados</h2>
+              <strong>{clientes.length}</strong>
 
-            <p>
-              {clientesFiltrados.length} cliente(s)
-              encontrado(s)
-            </p>
+              <small>Clientes cadastrados</small>
+            </button>
+
+            <button
+              type="button"
+              className={`clientes-indicador ${
+                filtro === "fisica" ? "ativo" : ""
+              }`}
+              onClick={() => setFiltro("fisica")}
+            >
+              <span>Pessoas físicas</span>
+
+              <strong>{quantidadeFisica}</strong>
+
+              <small>Cadastros individuais</small>
+            </button>
+
+            <button
+              type="button"
+              className={`clientes-indicador ${
+                filtro === "juridica" ? "ativo" : ""
+              }`}
+              onClick={() => setFiltro("juridica")}
+            >
+              <span>Pessoas jurídicas</span>
+
+              <strong>{quantidadeJuridica}</strong>
+
+              <small>Empresas cadastradas</small>
+            </button>
           </div>
 
-          <button
-            type="button"
-            className="botao-principal"
-            onClick={abrirCadastro}
-          >
-            + Novo cliente
-          </button>
-        </div>
+          <section className="clientes-bloco">
+            <div className="clientes-lista-cabecalho">
+              <div>
+                <h2>Clientes cadastrados</h2>
 
-        <div className="clientes-filtros">
-          <label>
-            Buscar cliente
+                <p>
+                  {clientesFiltrados.length} cliente(s)
+                  encontrado(s)
+                </p>
+              </div>
 
-            <input
-              type="text"
-              value={busca}
-              onChange={(evento) =>
-                setBusca(evento.target.value)
-              }
-              placeholder="Nome, CPF ou CNPJ..."
-            />
-          </label>
-
-          <label>
-            Tipo de cliente
-
-            <select
-              value={filtro}
-              onChange={(evento) =>
-                setFiltro(evento.target.value)
-              }
-            >
-              <option value="todos">Todos</option>
-
-              <option value="fisica">
-                Pessoa física
-              </option>
-
-              <option value="juridica">
-                Pessoa jurídica
-              </option>
-            </select>
-          </label>
-        </div>
-
-        {clientesFiltrados.length === 0 ? (
-          <div className="clientes-vazio">
-
-            <h3>Nenhum cliente encontrado</h3>
-
-            <p>
-              {clientes.length === 0
-                ? "Ainda não existem clientes cadastrados."
-                : "Tente alterar os filtros ou o termo da busca."}
-            </p>
-
-            {clientes.length === 0 ? (
               <button
                 type="button"
                 className="botao-principal"
                 onClick={abrirCadastro}
               >
-                Cadastrar primeiro cliente
+                + Novo cliente
               </button>
-            ) : (
-              <button
-                type="button"
-                className="clientes-botao-secundario"
-                onClick={() => {
-                  setBusca("");
-                  setFiltro("todos");
-                }}
-              >
-                Limpar filtros
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="clientes-lista">
-            {clientesFiltrados.map((cliente) => (
-              <article
-                className="clientes-card"
-                key={cliente.idCliente}
-              >
-                <div className="clientes-avatar">
-                  {String(cliente.nome || "?")
-                    .trim()
-                    .charAt(0)
-                    .toUpperCase()}
-                </div>
+            </div>
 
-                <div className="clientes-card-info">
-                  <h3>{cliente.nome}</h3>
+            <div className="clientes-filtros">
+              <label>
+                Buscar cliente
 
-                  <p>{cliente.documento}</p>
+                <input
+                  type="text"
+                  value={busca}
+                  onChange={(evento) =>
+                    setBusca(evento.target.value)
+                  }
+                  placeholder="Nome, CPF ou CNPJ..."
+                />
+              </label>
 
-                  <small>
-                    {cliente.endereco?.cidade ||
-                      "Cidade não informada"}
-                    {cliente.endereco?.uf
-                      ? ` - ${cliente.endereco.uf}`
-                      : ""}
-                  </small>
-                </div>
+              <label>
+                Tipo de cliente
 
-                <span
-                  className={`clientes-tipo ${
-                    cliente.isFisica
-                      ? "fisica"
-                      : "juridica"
-                  }`}
-                >
-                  {cliente.isFisica
-                    ? "Pessoa física"
-                    : "Pessoa jurídica"}
-                </span>
-
-                <button
-                  type="button"
-                  className="clientes-botao-secundario"
-                  onClick={() =>
-                    visualizarCliente(cliente)
+                <select
+                  value={filtro}
+                  onChange={(evento) =>
+                    setFiltro(evento.target.value)
                   }
                 >
-                  Ver cadastro →
-                </button>
-              </article>
-            ))}
+                  <option value="todos">
+                    Todos
+                  </option>
+
+                  <option value="fisica">
+                    Pessoa física
+                  </option>
+
+                  <option value="juridica">
+                    Pessoa jurídica
+                  </option>
+                </select>
+              </label>
+            </div>
+
+            {clientesFiltrados.length === 0 ? (
+              <div className="clientes-vazio">
+                <h3>Nenhum cliente encontrado</h3>
+
+                <p>
+                  {clientes.length === 0
+                    ? "Ainda não existem clientes cadastrados."
+                    : "Tente alterar os filtros ou o termo da busca."}
+                </p>
+
+                {clientes.length === 0 ? (
+                  <button
+                    type="button"
+                    className="botao-principal"
+                    onClick={abrirCadastro}
+                  >
+                    Cadastrar primeiro cliente
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="clientes-botao-secundario"
+                    onClick={() => {
+                      setBusca("");
+                      setFiltro("todos");
+                    }}
+                  >
+                    Limpar filtros
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="clientes-lista">
+                {clientesFiltrados.map((cliente) => (
+                  <article
+                    className="clientes-card"
+                    key={cliente.idCliente}
+                  >
+                    <div className="clientes-avatar">
+                      {String(cliente.nome || "?")
+                        .trim()
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
+
+                    <div className="clientes-card-info">
+                      <h3>{cliente.nome}</h3>
+
+                      <p>
+                        {formatarDocumento(
+                          cliente.documento
+                        )}
+                      </p>
+
+                      <small>
+                        {cliente.endereco?.cidade ||
+                          "Cidade não informada"}
+
+                        {cliente.endereco?.uf
+                          ? ` - ${cliente.endereco.uf}`
+                          : ""}
+                      </small>
+                    </div>
+
+                    <span
+                      className={`clientes-tipo ${
+                        cliente.isFisica
+                          ? "fisica"
+                          : "juridica"
+                      }`}
+                    >
+                      {cliente.isFisica
+                        ? "Pessoa física"
+                        : "Pessoa jurídica"}
+                    </span>
+
+                    <button
+                      type="button"
+                      className="clientes-botao-secundario"
+                      onClick={() =>
+                        visualizarCliente(cliente)
+                      }
+                    >
+                      Ver cadastro →
+                    </button>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <div className="clientes-acoes">
+            <button
+              type="button"
+              className="clientes-botao-secundario"
+              onClick={carregarClientes}
+            >
+              Atualizar clientes
+            </button>
           </div>
-        )}
-      </section>
+        </>
+      )}
     </section>
   );
 }

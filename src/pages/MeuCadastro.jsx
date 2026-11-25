@@ -1,10 +1,17 @@
 import { useState } from "react";
+
+import {
+  buscarClientePorDocumento,
+  cadastrarCliente,
+} from "../services/clientesService";
+
 import "../styles/meuCadastro.css";
 
 const cadastroInicial = {
   tipoPessoa: "fisica",
   nome: "",
   documento: "",
+
   telefones: [
     {
       ddi: "55",
@@ -12,7 +19,9 @@ const cadastroInicial = {
       numero: "",
     },
   ],
+
   emails: [""],
+
   endereco: {
     cep: "",
     tipoLogradouro: "Rua",
@@ -68,18 +77,6 @@ function formatarCEP(valor) {
     .replace(/^(\d{5})(\d)/, "$1-$2");
 }
 
-function obterClientes() {
-  try {
-    const dados = JSON.parse(
-      localStorage.getItem("equipass-clientes") || "[]"
-    );
-
-    return Array.isArray(dados) ? dados : [];
-  } catch {
-    return [];
-  }
-}
-
 function MeuCadastro() {
   const [formulario, setFormulario] =
     useState(cadastroInicial);
@@ -92,11 +89,58 @@ function MeuCadastro() {
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
 
+  const [consultando, setConsultando] =
+    useState(false);
+
+  const [salvando, setSalvando] =
+    useState(false);
+
+  const ocupado = consultando || salvando;
+  const cadastroExistente = clienteId !== null;
+
+  function preencherFormulario(cliente) {
+    const tipoPessoa = cliente.isFisica
+      ? "fisica"
+      : "juridica";
+
+    setClienteId(cliente.idCliente);
+
+    setFormulario({
+      tipoPessoa,
+      nome: cliente.nome,
+
+      documento: formatarDocumento(
+        cliente.documento,
+        tipoPessoa
+      ),
+
+      telefones:
+        cliente.telefones.length > 0
+          ? cliente.telefones
+          : cadastroInicial.telefones,
+
+      emails:
+        cliente.emails.length > 0
+          ? cliente.emails
+          : cadastroInicial.emails,
+
+      endereco: {
+        ...cadastroInicial.endereco,
+        ...cliente.endereco,
+
+        cep: formatarCEP(
+          cliente.endereco?.cep
+        ),
+      },
+    });
+  }
+
   function atualizarCampo(evento) {
     const { name, value } = evento.target;
 
     setFormulario((anterior) => ({
       ...anterior,
+
       [name]:
         name === "documento"
           ? formatarDocumento(
@@ -133,6 +177,7 @@ function MeuCadastro() {
 
     setFormulario((anterior) => ({
       ...anterior,
+
       endereco: {
         ...anterior.endereco,
         [name]: novoValor,
@@ -140,7 +185,11 @@ function MeuCadastro() {
     }));
   }
 
-  function atualizarTelefone(indice, campo, valor) {
+  function atualizarTelefone(
+    indice,
+    campo,
+    valor
+  ) {
     const limites = {
       ddi: 3,
       ddd: 2,
@@ -154,6 +203,7 @@ function MeuCadastro() {
 
     setFormulario((anterior) => ({
       ...anterior,
+
       telefones: anterior.telefones.map(
         (telefone, posicao) =>
           posicao === indice
@@ -169,8 +219,10 @@ function MeuCadastro() {
   function adicionarTelefone() {
     setFormulario((anterior) => ({
       ...anterior,
+
       telefones: [
         ...anterior.telefones,
+
         {
           ddi: "55",
           ddd: "",
@@ -183,6 +235,7 @@ function MeuCadastro() {
   function removerTelefone(indice) {
     setFormulario((anterior) => ({
       ...anterior,
+
       telefones: anterior.telefones.filter(
         (_, posicao) => posicao !== indice
       ),
@@ -192,6 +245,7 @@ function MeuCadastro() {
   function atualizarEmail(indice, valor) {
     setFormulario((anterior) => ({
       ...anterior,
+
       emails: anterior.emails.map(
         (email, posicao) =>
           posicao === indice ? valor : email
@@ -209,6 +263,7 @@ function MeuCadastro() {
   function removerEmail(indice) {
     setFormulario((anterior) => ({
       ...anterior,
+
       emails: anterior.emails.filter(
         (_, posicao) => posicao !== indice
       ),
@@ -223,70 +278,81 @@ function MeuCadastro() {
     setErro("");
   }
 
-  function consultarCadastro(evento) {
+  async function consultarCadastro(evento) {
     evento.preventDefault();
+
+    if (ocupado) {
+      return;
+    }
 
     setMensagem("");
     setErro("");
 
-    const documento = somenteNumeros(documentoBusca);
+    const documento = somenteNumeros(
+      documentoBusca
+    );
 
     if (![11, 14].includes(documento.length)) {
       setErro("Informe um CPF ou CNPJ válido.");
       return;
     }
 
-    const cliente = obterClientes().find(
-      (item) =>
-        somenteNumeros(item.documento) === documento
-    );
+    setConsultando(true);
 
-    if (!cliente) {
-      const tipoPessoa =
-        documento.length === 11
-          ? "fisica"
-          : "juridica";
+    try {
+      const cliente =
+        await buscarClientePorDocumento(documento);
 
-      setClienteId(null);
+      if (!cliente) {
+        const tipoPessoa =
+          documento.length === 11
+            ? "fisica"
+            : "juridica";
 
-      setFormulario({
-        ...cadastroInicial,
-        tipoPessoa,
-        documento: formatarDocumento(
-          documento,
-          tipoPessoa
-        ),
-      });
+        setClienteId(null);
+
+        setFormulario({
+          ...cadastroInicial,
+
+          tipoPessoa,
+
+          documento: formatarDocumento(
+            documento,
+            tipoPessoa
+          ),
+        });
+
+        setMensagem(
+          "Cadastro não encontrado. " +
+          "Preencha os dados abaixo para realizar um novo cadastro."
+        );
+
+        return;
+      }
+
+      preencherFormulario(cliente);
 
       setMensagem(
-        "Cadastro não encontrado. Preencha os dados abaixo para realizar um novo cadastro."
+        "Cadastro localizado com sucesso!"
       );
+    } catch (erro) {
+      console.error(erro);
 
-      return;
+      setErro(
+        "Não foi possível consultar o cadastro. " +
+        "Verifique a conexão com o servidor."
+      );
+    } finally {
+      setConsultando(false);
     }
-
-    setClienteId(cliente.idCliente);
-
-    setFormulario({
-      tipoPessoa: cliente.isFisica
-        ? "fisica"
-        : "juridica",
-
-      nome: cliente.nome,
-      documento: cliente.documento,
-      telefones: cliente.telefones,
-      emails: cliente.emails,
-      endereco: {
-        ...cadastroInicial.endereco,
-        ...cliente.endereco,
-      },
-    });
-
-    setMensagem("Cadastro localizado com sucesso!");
   }
 
-  function salvarCadastro(evento) {
+  async function salvarCadastro(evento) {
     evento.preventDefault();
+
+    if (ocupado || cadastroExistente) {
+      return;
+    }
 
     setErro("");
     setMensagem("");
@@ -296,7 +362,9 @@ function MeuCadastro() {
     );
 
     const tamanhoDocumento =
-      formulario.tipoPessoa === "fisica" ? 11 : 14;
+      formulario.tipoPessoa === "fisica"
+        ? 11
+        : 14;
 
     if (documento.length !== tamanhoDocumento) {
       setErro("Informe um CPF ou CNPJ válido.");
@@ -323,6 +391,28 @@ function MeuCadastro() {
       setErro(
         "Informe o nome do estado e uma UF com duas letras."
       );
+
+      return;
+    }
+
+    const camposEndereco = [
+      "tipoLogradouro",
+      "logradouro",
+      "numero",
+      "bairro",
+      "cidade",
+    ];
+
+    if (
+      camposEndereco.some(
+        (campo) =>
+          !formulario.endereco[campo]?.trim()
+      )
+    ) {
+      setErro(
+        "Preencha todos os campos obrigatórios do endereço."
+      );
+
       return;
     }
 
@@ -331,68 +421,70 @@ function MeuCadastro() {
         (telefone) =>
           !telefone.ddi ||
           telefone.ddd.length !== 2 ||
-          ![8, 9].includes(telefone.numero.length)
+          ![8, 9].includes(
+            telefone.numero.length
+          )
       );
 
     if (telefoneInvalido) {
       setErro(
         "Verifique o DDI, o DDD e o número dos telefones."
       );
+
       return;
     }
 
-    const clientes = obterClientes();
-
-    const documentoDuplicado = clientes.some(
-      (item) =>
-        somenteNumeros(item.documento) === documento &&
-        item.idCliente !== clienteId
-    );
-
-    if (documentoDuplicado) {
-      setErro(
-        "Já existe um cliente cadastrado com esse documento."
-      );
-      return;
-    }
-
-    const novoCliente = {
-      ...formulario,
-      idCliente: clienteId ?? Date.now(),
-      isFisica: formulario.tipoPessoa === "fisica",
-    };
-
-    const clientesAtualizados =
-      clienteId !== null
-        ? clientes.map((item) =>
-            item.idCliente === clienteId
-              ? novoCliente
-              : item
-          )
-        : [...clientes, novoCliente];
+    setSalvando(true);
 
     try {
-      localStorage.setItem(
-        "equipass-clientes",
-        JSON.stringify(clientesAtualizados)
+      const clienteExistente =
+        await buscarClientePorDocumento(documento);
+
+      if (clienteExistente) {
+        preencherFormulario(clienteExistente);
+
+        setErro(
+          "Já existe um cliente cadastrado com esse documento."
+        );
+
+        return;
+      }
+
+      const cliente =
+        await cadastrarCliente(formulario);
+
+      preencherFormulario(cliente);
+
+      setMensagem(
+        "Cadastro realizado com sucesso!"
       );
-    } catch {
-      setErro("Não foi possível salvar o cadastro.");
-      return;
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    } catch (erro) {
+      console.error(erro);
+
+      if (erro.status === 400) {
+        setErro(
+          "O servidor não aceitou o cadastro. " +
+          "Confira os dados informados e o serviço de endereços."
+        );
+      } else {
+        setErro(
+          "Não foi possível salvar o cadastro. " +
+          "Verifique se os servidores estão funcionando."
+        );
+      }
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    } finally {
+      setSalvando(false);
     }
-
-    setMensagem(
-      clienteId !== null
-        ? "Cadastro atualizado com sucesso!"
-        : "Cadastro realizado com sucesso!"
-    );
-
-    setClienteId(novoCliente.idCliente);
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
   }
 
   return (
@@ -405,8 +497,8 @@ function MeuCadastro() {
         <h1>Meu Cadastro</h1>
 
         <p>
-          Cadastre seus dados ou consulte um cadastro
-          existente para atualizar suas informações.
+          Cadastre seus dados ou consulte um
+          cadastro existente.
         </p>
       </div>
 
@@ -446,6 +538,7 @@ function MeuCadastro() {
               type="text"
               inputMode="numeric"
               value={documentoBusca}
+              disabled={ocupado}
               onChange={(evento) => {
                 const valor = evento.target.value;
 
@@ -466,375 +559,425 @@ function MeuCadastro() {
           <button
             type="submit"
             className="botao-principal"
+            disabled={ocupado}
           >
-            Consultar cadastro
+            {consultando
+              ? "Consultando..."
+              : "Consultar cadastro"}
           </button>
         </form>
       </section>
 
       <form onSubmit={salvarCadastro}>
-        <section className="cadastro-bloco">
-          <h2>Dados pessoais</h2>
+        <fieldset
+          disabled={ocupado || cadastroExistente}
+          style={{
+            border: 0,
+            padding: 0,
+            margin: 0,
+            minWidth: 0,
+          }}
+        >
+          <section className="cadastro-bloco">
+            <h2>Dados pessoais</h2>
 
-          <div className="cadastro-tipo-pessoa">
-            <label>
-              <input
-                type="radio"
-                name="tipoPessoa"
-                checked={
-                  formulario.tipoPessoa === "fisica"
-                }
-                onChange={() =>
-                  alterarTipoPessoa("fisica")
-                }
-              />
+            <div className="cadastro-tipo-pessoa">
+              <label>
+                <input
+                  type="radio"
+                  name="tipoPessoa"
+                  checked={
+                    formulario.tipoPessoa === "fisica"
+                  }
+                  onChange={() =>
+                    alterarTipoPessoa("fisica")
+                  }
+                />
 
-              Pessoa física
-            </label>
+                Pessoa física
+              </label>
 
-            <label>
-              <input
-                type="radio"
-                name="tipoPessoa"
-                checked={
-                  formulario.tipoPessoa === "juridica"
-                }
-                onChange={() =>
-                  alterarTipoPessoa("juridica")
-                }
-              />
+              <label>
+                <input
+                  type="radio"
+                  name="tipoPessoa"
+                  checked={
+                    formulario.tipoPessoa === "juridica"
+                  }
+                  onChange={() =>
+                    alterarTipoPessoa("juridica")
+                  }
+                />
 
-              Pessoa jurídica
-            </label>
-          </div>
+                Pessoa jurídica
+              </label>
+            </div>
 
-          <div className="cadastro-grid">
-            <label className="campo-duplo">
-              {formulario.tipoPessoa === "fisica"
-                ? "Nome completo *"
-                : "Razão social *"}
+            <div className="cadastro-grid">
+              <label className="campo-duplo">
+                {formulario.tipoPessoa === "fisica"
+                  ? "Nome completo *"
+                  : "Razão social *"}
 
-              <input
-                type="text"
-                name="nome"
-                value={formulario.nome}
-                onChange={atualizarCampo}
-                placeholder={
-                  formulario.tipoPessoa === "fisica"
-                    ? "Informe seu nome completo"
-                    : "Informe a razão social"
-                }
-                required
-              />
-            </label>
+                <input
+                  type="text"
+                  name="nome"
+                  value={formulario.nome}
+                  onChange={atualizarCampo}
+                  placeholder={
+                    formulario.tipoPessoa === "fisica"
+                      ? "Informe seu nome completo"
+                      : "Informe a razão social"
+                  }
+                  required
+                />
+              </label>
 
-            <label>
-              {formulario.tipoPessoa === "fisica"
-                ? "CPF *"
-                : "CNPJ *"}
+              <label>
+                {formulario.tipoPessoa === "fisica"
+                  ? "CPF *"
+                  : "CNPJ *"}
 
-              <input
-                type="text"
-                name="documento"
-                inputMode="numeric"
-                value={formulario.documento}
-                onChange={atualizarCampo}
-                placeholder={
-                  formulario.tipoPessoa === "fisica"
-                    ? "000.000.000-00"
-                    : "00.000.000/0000-00"
-                }
-                required
-              />
-            </label>
-          </div>
-        </section>
+                <input
+                  type="text"
+                  name="documento"
+                  inputMode="numeric"
+                  value={formulario.documento}
+                  onChange={atualizarCampo}
+                  placeholder={
+                    formulario.tipoPessoa === "fisica"
+                      ? "000.000.000-00"
+                      : "00.000.000/0000-00"
+                  }
+                  required
+                />
+              </label>
+            </div>
+          </section>
 
-        <section className="cadastro-bloco">
-          <h2>Telefones</h2>
+          <section className="cadastro-bloco">
+            <h2>Telefones</h2>
 
-          {formulario.telefones.map(
-            (telefone, indice) => (
+            {formulario.telefones.map(
+              (telefone, indice) => (
+                <div
+                  className="cadastro-telefone"
+                  key={indice}
+                >
+                  <label>
+                    DDI *
+
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={telefone.ddi}
+                      onChange={(evento) =>
+                        atualizarTelefone(
+                          indice,
+                          "ddi",
+                          evento.target.value
+                        )
+                      }
+                      placeholder="55"
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    DDD *
+
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={telefone.ddd}
+                      onChange={(evento) =>
+                        atualizarTelefone(
+                          indice,
+                          "ddd",
+                          evento.target.value
+                        )
+                      }
+                      placeholder="45"
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Número *
+
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={telefone.numero}
+                      onChange={(evento) =>
+                        atualizarTelefone(
+                          indice,
+                          "numero",
+                          evento.target.value
+                        )
+                      }
+                      placeholder="999999999"
+                      required
+                    />
+                  </label>
+
+                  {formulario.telefones.length > 1 && (
+                    <button
+                      type="button"
+                      className="cadastro-remover"
+                      onClick={() =>
+                        removerTelefone(indice)
+                      }
+                    >
+                      Remover
+                    </button>
+                  )}
+                </div>
+              )
+            )}
+
+            {!cadastroExistente && (
+              <button
+                type="button"
+                className="cadastro-adicionar"
+                onClick={adicionarTelefone}
+              >
+                + Adicionar telefone
+              </button>
+            )}
+          </section>
+
+          <section className="cadastro-bloco">
+            <h2>E-mails</h2>
+
+            {formulario.emails.map((email, indice) => (
               <div
-                className="cadastro-telefone"
+                className="cadastro-email"
                 key={indice}
               >
                 <label>
-                  DDI *
+                  E-mail *
 
                   <input
-                    type="text"
-                    inputMode="numeric"
-                    value={telefone.ddi}
+                    type="email"
+                    value={email}
                     onChange={(evento) =>
-                      atualizarTelefone(
+                      atualizarEmail(
                         indice,
-                        "ddi",
                         evento.target.value
                       )
                     }
-                    placeholder="55"
+                    placeholder="Informe o e-mail"
                     required
                   />
                 </label>
 
-                <label>
-                  DDD *
-
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={telefone.ddd}
-                    onChange={(evento) =>
-                      atualizarTelefone(
-                        indice,
-                        "ddd",
-                        evento.target.value
-                      )
-                    }
-                    placeholder="45"
-                    required
-                  />
-                </label>
-
-                <label>
-                  Número *
-
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={telefone.numero}
-                    onChange={(evento) =>
-                      atualizarTelefone(
-                        indice,
-                        "numero",
-                        evento.target.value
-                      )
-                    }
-                    placeholder="999999999"
-                    required
-                  />
-                </label>
-
-                {formulario.telefones.length > 1 && (
+                {formulario.emails.length > 1 && (
                   <button
                     type="button"
                     className="cadastro-remover"
                     onClick={() =>
-                      removerTelefone(indice)
+                      removerEmail(indice)
                     }
                   >
                     Remover
                   </button>
                 )}
               </div>
-            )
-          )}
+            ))}
 
-          <button
-            type="button"
-            className="cadastro-adicionar"
-            onClick={adicionarTelefone}
-          >
-            + Adicionar telefone
-          </button>
-        </section>
+            {!cadastroExistente && (
+              <button
+                type="button"
+                className="cadastro-adicionar"
+                onClick={adicionarEmail}
+              >
+                + Adicionar e-mail
+              </button>
+            )}
+          </section>
 
-        <section className="cadastro-bloco">
-          <h2>E-mails</h2>
+          <section className="cadastro-bloco">
+            <h2>Endereço</h2>
 
-          {formulario.emails.map((email, indice) => (
-            <div
-              className="cadastro-email"
-              key={indice}
-            >
+            <p>Informe seu endereço principal.</p>
+
+            <div className="cadastro-grid">
               <label>
-                E-mail *
+                CEP *
 
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(evento) =>
-                    atualizarEmail(
-                      indice,
-                      evento.target.value
-                    )
-                  }
-                  placeholder="exemplo@email.com"
+                  type="text"
+                  name="cep"
+                  inputMode="numeric"
+                  value={formulario.endereco.cep}
+                  onChange={atualizarEndereco}
+                  placeholder="00000-000"
                   required
                 />
               </label>
 
-              {formulario.emails.length > 1 && (
-                <button
-                  type="button"
-                  className="cadastro-remover"
-                  onClick={() => removerEmail(indice)}
+              <label>
+                Tipo de logradouro *
+
+                <select
+                  name="tipoLogradouro"
+                  value={
+                    formulario.endereco.tipoLogradouro
+                  }
+                  onChange={atualizarEndereco}
+                  required
                 >
-                  Remover
-                </button>
-              )}
-            </div>
-          ))}
-
-          <button
-            type="button"
-            className="cadastro-adicionar"
-            onClick={adicionarEmail}
-          >
-            + Adicionar e-mail
-          </button>
-        </section>
-
-        <section className="cadastro-bloco">
-          <h2>Endereço</h2>
-
-          <p>Informe seu endereço principal.</p>
-
-          <div className="cadastro-grid">
-            <label>
-              CEP *
-
-              <input
-                type="text"
-                name="cep"
-                inputMode="numeric"
-                value={formulario.endereco.cep}
-                onChange={atualizarEndereco}
-                placeholder="00000-000"
-                required
-              />
-            </label>
-
-            <label>
-              Tipo de logradouro *
-
-              <select
-                name="tipoLogradouro"
-                value={
-                  formulario.endereco.tipoLogradouro
-                }
-                onChange={atualizarEndereco}
-                required
-              >
-                {tiposLogradouro.map((tipo) => (
-                  <option key={tipo} value={tipo}>
-                    {tipo}
+                  <option value="">
+                    Selecione
                   </option>
-                ))}
-              </select>
-            </label>
 
-            <label>
-              Logradouro *
+                  {formulario.endereco.tipoLogradouro &&
+                    !tiposLogradouro.includes(
+                      formulario.endereco.tipoLogradouro
+                    ) && (
+                      <option
+                        value={
+                          formulario.endereco.tipoLogradouro
+                        }
+                      >
+                        {formulario.endereco.tipoLogradouro}
+                      </option>
+                    )}
 
-              <input
-                type="text"
-                name="logradouro"
-                value={formulario.endereco.logradouro}
-                onChange={atualizarEndereco}
-                placeholder="Nome da rua"
-                required
-              />
-            </label>
+                  {tiposLogradouro.map((tipo) => (
+                    <option key={tipo} value={tipo}>
+                      {tipo}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <label>
-              Número *
+              <label>
+                Logradouro *
 
-              <input
-                type="text"
-                name="numero"
-                value={formulario.endereco.numero}
-                onChange={atualizarEndereco}
-                placeholder="123"
-                required
-              />
-            </label>
+                <input
+                  type="text"
+                  name="logradouro"
+                  value={formulario.endereco.logradouro}
+                  onChange={atualizarEndereco}
+                  placeholder="Nome da rua"
+                  required
+                />
+              </label>
 
-            <label className="campo-duplo">
-              Complemento
+              <label>
+                Número *
 
-              <input
-                type="text"
-                name="complemento"
-                value={formulario.endereco.complemento}
-                onChange={atualizarEndereco}
-                placeholder="Apartamento, bloco, casa..."
-              />
-            </label>
+                <input
+                  type="text"
+                  name="numero"
+                  value={formulario.endereco.numero}
+                  onChange={atualizarEndereco}
+                  maxLength={14}
+                  required
+                />
+              </label>
 
-            <label>
-              Bairro *
+              <label className="campo-duplo">
+                Complemento
 
-              <input
-                type="text"
-                name="bairro"
-                value={formulario.endereco.bairro}
-                onChange={atualizarEndereco}
-                required
-              />
-            </label>
+                <input
+                  type="text"
+                  name="complemento"
+                  value={formulario.endereco.complemento}
+                  onChange={atualizarEndereco}
+                  maxLength={99}
+                  placeholder="Apartamento, bloco, casa..."
+                />
+              </label>
 
-            <label>
-              Cidade *
+              <label>
+                Bairro *
 
-              <input
-                type="text"
-                name="cidade"
-                value={formulario.endereco.cidade}
-                onChange={atualizarEndereco}
-                required
-              />
-            </label>
+                <input
+                  type="text"
+                  name="bairro"
+                  value={formulario.endereco.bairro}
+                  onChange={atualizarEndereco}
+                  required
+                />
+              </label>
 
-            <label>
-              Estado *
+              <label>
+                Cidade *
 
-              <input
-                type="text"
-                name="nomeEstado"
-                value={formulario.endereco.nomeEstado}
-                onChange={atualizarEndereco}
-                placeholder="Paraná"
-                required
-              />
-            </label>
+                <input
+                  type="text"
+                  name="cidade"
+                  value={formulario.endereco.cidade}
+                  onChange={atualizarEndereco}
+                  required
+                />
+              </label>
 
-            <label>
-              UF *
+              <label>
+                Estado *
 
-              <input
-                type="text"
-                name="uf"
-                value={formulario.endereco.uf}
-                onChange={atualizarEndereco}
-                placeholder="PR"
-                maxLength={2}
-                required
-              />
-            </label>
-          </div>
-        </section>
+                <input
+                  type="text"
+                  name="nomeEstado"
+                  value={formulario.endereco.nomeEstado}
+                  onChange={atualizarEndereco}
+                  placeholder="Informe o estado"
+                  required
+                />
+              </label>
+
+              <label>
+                UF *
+
+                <input
+                  type="text"
+                  name="uf"
+                  value={formulario.endereco.uf}
+                  onChange={atualizarEndereco}
+                  placeholder="UF"
+                  maxLength={2}
+                  required
+                />
+              </label>
+            </div>
+          </section>
+        </fieldset>
+
+        {cadastroExistente && (
+          <p className="cadastro-mensagem">
+            Cadastro existente. Os dados estão disponíveis
+            para consulta.
+          </p>
+        )}
 
         <div className="cadastro-acoes">
           <button
             type="button"
             className="cadastro-limpar"
             onClick={limparFormulario}
+            disabled={ocupado}
           >
-            Limpar formulário
+            {cadastroExistente
+              ? "Novo cadastro"
+              : "Limpar formulário"}
           </button>
 
-          <button
-            type="submit"
-            className="botao-principal"
-          >
-            {clienteId !== null
-              ? "Atualizar cadastro"
-              : "Salvar cadastro"}
+          {!cadastroExistente && (
+            <button
+              type="submit"
+              className="botao-principal"
+              disabled={ocupado}
+            >
+              {salvando
+                ? "Salvando cadastro..."
+                : "Salvar cadastro"}
 
-            <span>→</span>
-          </button>
+              <span>→</span>
+            </button>
+          )}
         </div>
       </form>
     </section>

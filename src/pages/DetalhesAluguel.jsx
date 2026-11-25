@@ -1,8 +1,13 @@
+import { useEffect, useState } from "react";
+
+import {
+  buscarAluguelPorId,
+} from "../services/alugueisService";
 
 import "../styles/alugueis.css";
 
 function formatarMoeda(valor) {
-  if (valor === null || valor === undefined) {
+  if (valor == null) {
     return "Não informado";
   }
 
@@ -15,6 +20,12 @@ function formatarMoeda(valor) {
 function formatarData(valor) {
   if (!valor) {
     return "Ainda não registrado";
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+    const [ano, mes, dia] = valor.split("-");
+
+    return `${dia}/${mes}/${ano}`;
   }
 
   const data = new Date(valor);
@@ -49,24 +60,132 @@ function CampoDetalhe({ titulo, valor }) {
   return (
     <div className="detalhes-campo">
       <span>{titulo}</span>
-      <strong>{valor ?? "Não informado"}</strong>
+
+      <strong>
+        {valor == null || valor === ""
+          ? "Não informado"
+          : valor}
+      </strong>
     </div>
   );
 }
 
-function DetalhesAluguel({ aluguel, voltar }) {
-  if (!aluguel) {
+function DetalhesAluguel({
+  aluguel: aluguelInicial,
+  voltar,
+}) {
+  const [aluguel, setAluguel] = useState(null);
+
+  const [carregando, setCarregando] = useState(true);
+
+  const [erro, setErro] = useState("");
+
+  const [tentativa, setTentativa] = useState(0);
+
+  const idAluguel = aluguelInicial?.idAluguel;
+
+  useEffect(() => {
+    let cancelado = false;
+
+    async function carregarDetalhes() {
+      setCarregando(true);
+      setErro("");
+      setAluguel(null);
+
+      try {
+        if (idAluguel == null) {
+          throw new Error(
+            "Identificador do aluguel não informado."
+          );
+        }
+
+        const dados = await buscarAluguelPorId(
+          idAluguel
+        );
+
+        if (cancelado) {
+          return;
+        }
+
+        if (!dados) {
+          setErro("Aluguel não encontrado.");
+          return;
+        }
+
+        setAluguel(dados);
+      } catch (erro) {
+        console.error(erro);
+
+        if (!cancelado) {
+          setErro(
+            "Não foi possível consultar os detalhes " +
+            "do aluguel. Verifique a conexão com o servidor."
+          );
+        }
+      } finally {
+        if (!cancelado) {
+          setCarregando(false);
+        }
+      }
+    }
+
+    carregarDetalhes();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [idAluguel, tentativa]);
+
+  if (carregando) {
     return (
       <section className="alugueis-pagina">
-        <h1>Aluguel não encontrado</h1>
-
         <button
           type="button"
-          className="alugueis-botao-secundario"
+          className="detalhes-voltar"
           onClick={voltar}
         >
-          ← Voltar
+          ← Voltar para os aluguéis
         </button>
+
+        <div className="alugueis-vazio">
+          <h3>Carregando detalhes do aluguel...</h3>
+
+          <p>
+            Aguarde enquanto consultamos o servidor.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  if (erro || !aluguel) {
+    return (
+      <section className="alugueis-pagina">
+        <button
+          type="button"
+          className="detalhes-voltar"
+          onClick={voltar}
+        >
+          ← Voltar para os aluguéis
+        </button>
+
+        <div className="alugueis-vazio" role="alert">
+          <h3>Não foi possível consultar o aluguel</h3>
+
+          <p>
+            {erro || "Aluguel não encontrado."}
+          </p>
+
+          <button
+            type="button"
+            className="alugueis-botao-secundario"
+            onClick={() =>
+              setTentativa((anterior) => anterior + 1)
+            }
+          >
+            Tentar novamente
+          </button>
+        </div>
       </section>
     );
   }
@@ -113,7 +232,8 @@ function DetalhesAluguel({ aluguel, voltar }) {
 
         <div className="detalhes-cabecalho">
           <h1>
-            Aluguel #{String(aluguel.idAluguel)
+            Aluguel #
+            {String(aluguel.idAluguel)
               .padStart(4, "0")}
           </h1>
 
@@ -141,10 +261,14 @@ function DetalhesAluguel({ aluguel, voltar }) {
               key={etapa.titulo}
               className={`detalhes-etapa ${
                 indice <= etapaAtual ? "concluida" : ""
-              } ${indice === etapaAtual ? "atual" : ""}`}
+              } ${
+                indice === etapaAtual ? "atual" : ""
+              }`}
             >
               <div className="detalhes-etapa-numero">
-                {indice < etapaAtual ? "✓" : indice + 1}
+                {indice < etapaAtual
+                  ? "✓"
+                  : indice + 1}
               </div>
 
               <h3>{etapa.titulo}</h3>
@@ -261,7 +385,7 @@ function DetalhesAluguel({ aluguel, voltar }) {
       <section className="alugueis-bloco">
         <h2>Endereço de entrega</h2>
 
-        {endereco ? (
+        {endereco?.cep ? (
           <div className="detalhes-grid">
             <CampoDetalhe
               titulo="CEP"
@@ -270,7 +394,10 @@ function DetalhesAluguel({ aluguel, voltar }) {
 
             <CampoDetalhe
               titulo="Logradouro"
-              valor={`${endereco.tipoLogradouro} ${endereco.logradouro}`}
+              valor={[
+                endereco.tipoLogradouro,
+                endereco.logradouro,
+              ].filter(Boolean).join(" ")}
             />
 
             <CampoDetalhe
@@ -280,7 +407,10 @@ function DetalhesAluguel({ aluguel, voltar }) {
 
             <CampoDetalhe
               titulo="Complemento"
-              valor={endereco.complemento || "Não informado"}
+              valor={
+                endereco.complemento ||
+                "Não informado"
+              }
             />
 
             <CampoDetalhe
@@ -295,11 +425,17 @@ function DetalhesAluguel({ aluguel, voltar }) {
 
             <CampoDetalhe
               titulo="Estado"
-              valor={`${endereco.nomeEstado} - ${endereco.uf}`}
+              valor={[
+                endereco.nomeEstado,
+                endereco.uf,
+              ].filter(Boolean).join(" - ")}
             />
           </div>
         ) : (
-          <p>Endereço não informado.</p>
+          <p>
+            Os dados completos do endereço não foram
+            retornados pelo servidor.
+          </p>
         )}
       </section>
 
@@ -334,16 +470,16 @@ function DetalhesAluguel({ aluguel, voltar }) {
           <span>Valor pago</span>
 
           <strong>
-            {aluguel.valorPago === null ||
-            aluguel.valorPago === undefined
+            {aluguel.situacao !== "Encerrado"
               ? "Aguardando registro"
               : formatarMoeda(aluguel.valorPago)}
           </strong>
         </div>
 
         <p>
-          O valor pago será registrado pelo atendente
-          técnico no momento da devolução.
+          {aluguel.situacao === "Encerrado"
+            ? "Locação encerrada. Consulte acima o valor registrado."
+            : "O valor pago será registrado pelo atendente técnico no momento da devolução."}
         </p>
       </section>
 

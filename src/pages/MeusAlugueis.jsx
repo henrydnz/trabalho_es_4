@@ -1,7 +1,15 @@
-
 import { useState } from "react";
 
 import DetalhesAluguel from "./DetalhesAluguel";
+
+import {
+  buscarClientePorDocumento,
+} from "../services/clientesService";
+
+import {
+  buscarAlugueisPorCliente,
+} from "../services/alugueisService";
+
 import "../styles/alugueis.css";
 
 function somenteNumeros(valor) {
@@ -26,6 +34,10 @@ function formatarDocumento(valor) {
 }
 
 function formatarMoeda(valor) {
+  if (valor == null) {
+    return "Não informado";
+  }
+
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
@@ -47,18 +59,6 @@ function formatarData(valor) {
     dateStyle: "short",
     timeStyle: "short",
   });
-}
-
-function obterDados(chave) {
-  try {
-    const dados = JSON.parse(
-      localStorage.getItem(chave) || "[]"
-    );
-
-    return Array.isArray(dados) ? dados : [];
-  } catch {
-    return [];
-  }
 }
 
 function classeSituacao(situacao) {
@@ -84,11 +84,17 @@ function MeusAlugueis({ setPagina }) {
   const [filtro, setFiltro] = useState("Todos");
   const [erro, setErro] = useState("");
 
+  const [carregando, setCarregando] = useState(false);
+
   const [aluguelSelecionado, setAluguelSelecionado] =
     useState(null);
 
-  function consultarAlugueis(evento) {
-    evento.preventDefault();
+  async function consultarAlugueis(evento) {
+    evento?.preventDefault();
+
+    if (carregando) {
+      return;
+    }
 
     setErro("");
     setCliente(null);
@@ -103,35 +109,49 @@ function MeusAlugueis({ setPagina }) {
       return;
     }
 
-    const clientes = obterDados("equipass-clientes");
+    setCarregando(true);
 
-    const clienteEncontrado = clientes.find(
-      (item) =>
-        somenteNumeros(item.documento) === documentoLimpo
-    );
+    try {
+      const clienteEncontrado =
+        await buscarClientePorDocumento(documentoLimpo);
 
-    if (!clienteEncontrado) {
-      setErro("Nenhum cliente encontrado com esse documento.");
-      return;
-    }
+      if (!clienteEncontrado) {
+        setErro(
+          "Nenhum cliente encontrado com esse documento."
+        );
 
-    const pedidos = obterDados("equipass-alugueis")
-      .filter(
-        (item) =>
-          String(item.idCliente) ===
-          String(clienteEncontrado.idCliente)
-      )
-      .sort(
-        (a, b) =>
-          new Date(b.dataPedido) - new Date(a.dataPedido)
+        return;
+      }
+
+      const pedidos = await buscarAlugueisPorCliente(
+        clienteEncontrado.idCliente
       );
 
-    setCliente(clienteEncontrado);
-    setAlugueis(pedidos);
+      pedidos.sort(
+        (a, b) =>
+          new Date(b.dataPedido) -
+          new Date(a.dataPedido)
+      );
+
+      setCliente(clienteEncontrado);
+      setAlugueis(pedidos);
+    } catch (erro) {
+      console.error(erro);
+
+      setErro(
+        "Não foi possível consultar os aluguéis. " +
+        "Verifique a conexão com o servidor."
+      );
+    } finally {
+      setCarregando(false);
+    }
   }
 
   function atualizarDocumento(evento) {
-    setDocumento(formatarDocumento(evento.target.value));
+    setDocumento(
+      formatarDocumento(evento.target.value)
+    );
+
     setCliente(null);
     setAlugueis([]);
     setAluguelSelecionado(null);
@@ -140,11 +160,15 @@ function MeusAlugueis({ setPagina }) {
 
   function abrirDetalhes(aluguel) {
     setAluguelSelecionado(aluguel);
+
     window.scrollTo(0, 0);
   }
 
   function fecharDetalhes() {
     setAluguelSelecionado(null);
+
+    consultarAlugueis();
+
     window.scrollTo(0, 0);
   }
 
@@ -212,6 +236,7 @@ function MeusAlugueis({ setPagina }) {
               value={documento}
               onChange={atualizarDocumento}
               placeholder="Informe seu documento"
+              disabled={carregando}
               required
             />
           </label>
@@ -219,8 +244,11 @@ function MeusAlugueis({ setPagina }) {
           <button
             type="submit"
             className="botao-principal"
+            disabled={carregando}
           >
-            Consultar aluguéis
+            {carregando
+              ? "Consultando..."
+              : "Consultar aluguéis"}
           </button>
         </form>
 
@@ -231,13 +259,27 @@ function MeusAlugueis({ setPagina }) {
         )}
       </section>
 
-      {cliente && (
+      {carregando && (
+        <div className="alugueis-vazio">
+          <h3>Consultando aluguéis...</h3>
+
+          <p>
+            Aguarde enquanto consultamos o servidor.
+          </p>
+        </div>
+      )}
+
+      {cliente && !carregando && (
         <>
           <div className="alugueis-identificacao">
             <div>
               <span>CLIENTE IDENTIFICADO</span>
+
               <h2>{cliente.nome}</h2>
-              <p>{cliente.documento}</p>
+
+              <p>
+                {formatarDocumento(cliente.documento)}
+              </p>
             </div>
 
             <button
@@ -283,11 +325,14 @@ function MeusAlugueis({ setPagina }) {
                 key={item.titulo}
                 className={`alugueis-indicador ${
                   item.classe
-                } ${filtro === item.filtro ? "ativo" : ""}`}
+                } ${
+                  filtro === item.filtro ? "ativo" : ""
+                }`}
                 onClick={() => setFiltro(item.filtro)}
                 aria-pressed={filtro === item.filtro}
               >
                 <span>{item.titulo}</span>
+
                 <strong>{item.quantidade}</strong>
               </button>
             ))}
@@ -312,7 +357,9 @@ function MeusAlugueis({ setPagina }) {
                   setFiltro(evento.target.value)
                 }
               >
-                <option value="Todos">Todos</option>
+                <option value="Todos">
+                  Todos
+                </option>
 
                 <option value="Solicitado">
                   Solicitado
@@ -331,10 +378,6 @@ function MeusAlugueis({ setPagina }) {
 
           {alugueisFiltrados.length === 0 ? (
             <div className="alugueis-vazio">
-              <span className="alugueis-vazio-icone">
-                ▦
-              </span>
-
               <h3>Nenhum aluguel encontrado</h3>
 
               <p>
@@ -373,11 +416,15 @@ function MeusAlugueis({ setPagina }) {
                   <div className="alugueis-card-topo">
                     <div>
                       <span className="alugueis-pedido">
-                        PEDIDO #{String(aluguel.idAluguel)
+                        PEDIDO #
+                        {String(aluguel.idAluguel)
                           .padStart(4, "0")}
                       </span>
 
-                      <h3>{aluguel.tipoEquipamento}</h3>
+                      <h3>
+                        {aluguel.tipoEquipamento ||
+                          "Não informado"}
+                      </h3>
                     </div>
 
                     <span
@@ -392,20 +439,27 @@ function MeusAlugueis({ setPagina }) {
                   <div className="alugueis-card-dados">
                     <div>
                       <span>Início previsto</span>
+
                       <strong>
-                        {formatarData(aluguel.dataHoraInicio)}
+                        {formatarData(
+                          aluguel.dataHoraInicio
+                        )}
                       </strong>
                     </div>
 
                     <div>
                       <span>Devolução prevista</span>
+
                       <strong>
-                        {formatarData(aluguel.dataHoraFim)}
+                        {formatarData(
+                          aluguel.dataHoraFim
+                        )}
                       </strong>
                     </div>
 
                     <div>
                       <span>Duração prevista</span>
+
                       <strong>
                         {aluguel.diasPrevistos} dia(s)
                       </strong>
@@ -417,14 +471,18 @@ function MeusAlugueis({ setPagina }) {
                       <span>Valor previsto</span>
 
                       <strong>
-                        {formatarMoeda(aluguel.valorTotal)}
+                        {formatarMoeda(
+                          aluguel.valorTotal
+                        )}
                       </strong>
                     </div>
 
                     <button
                       type="button"
                       className="alugueis-botao-secundario"
-                      onClick={() => abrirDetalhes(aluguel)}
+                      onClick={() =>
+                        abrirDetalhes(aluguel)
+                      }
                     >
                       Ver detalhes →
                     </button>
@@ -433,6 +491,17 @@ function MeusAlugueis({ setPagina }) {
               ))}
             </div>
           )}
+
+          <div className="detalhes-acoes">
+            <button
+              type="button"
+              className="alugueis-botao-secundario"
+              onClick={consultarAlugueis}
+              disabled={carregando}
+            >
+              Atualizar aluguéis
+            </button>
+          </div>
         </>
       )}
     </section>

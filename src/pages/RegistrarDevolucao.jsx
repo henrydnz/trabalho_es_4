@@ -1,21 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import {
+  obterAlugueis,
+} from "../services/alugueisService";
+
+import { requisicao } from "../services/api";
+
 import "../styles/registrarDevolucao.css";
-
-function obterAlugueis() {
-  try {
-    const dados = JSON.parse(
-      localStorage.getItem("equipass-alugueis") || "[]"
-    );
-
-    return Array.isArray(dados) ? dados : [];
-  } catch {
-    return [];
-  }
-}
 
 function formatarData(valor) {
   if (!valor) {
     return "Não informado";
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+    const [ano, mes, dia] = valor.split("-");
+    return `${dia}/${mes}/${ano}`;
   }
 
   const data = new Date(valor);
@@ -58,8 +58,7 @@ function CampoResumo({ titulo, valor }) {
 }
 
 function RegistrarDevolucao() {
-  const [alugueis, setAlugueis] =
-    useState(obterAlugueis);
+  const [alugueis, setAlugueis] = useState([]);
 
   const [aluguelId, setAluguelId] = useState("");
 
@@ -69,6 +68,14 @@ function RegistrarDevolucao() {
   const [valorPago, setValorPago] = useState("");
 
   const [erro, setErro] = useState("");
+  const [erroLista, setErroLista] = useState("");
+  const [sucesso, setSucesso] = useState("");
+
+  const [carregando, setCarregando] =
+    useState(true);
+
+  const [registrando, setRegistrando] =
+    useState(false);
 
   const alugueisEmLocacao = alugueis.filter(
     (item) => item.situacao === "Em locação"
@@ -92,14 +99,44 @@ function RegistrarDevolucao() {
 
   const podeRegistrar =
     Boolean(aluguel) &&
+    Boolean(equipamento) &&
     Boolean(dataDevolucao) &&
-    valorPagoValido;
+    valorPagoValido &&
+    !carregando &&
+    !registrando &&
+    !erroLista;
+
+  async function carregarAlugueis() {
+    setCarregando(true);
+    setErroLista("");
+
+    try {
+      const dados = await obterAlugueis();
+
+      setAlugueis(dados);
+    } catch (erro) {
+      console.error(erro);
+
+      setAlugueis([]);
+
+      setErroLista(
+        "Não foi possível consultar os aluguéis."
+      );
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  useEffect(() => {
+    carregarAlugueis();
+  }, []);
 
   function selecionarAluguel(evento) {
     setAluguelId(evento.target.value);
     setDataDevolucao("");
     setValorPago("");
     setErro("");
+    setSucesso("");
   }
 
   function limpar() {
@@ -107,20 +144,34 @@ function RegistrarDevolucao() {
     setDataDevolucao("");
     setValorPago("");
     setErro("");
+    setSucesso("");
   }
 
-  function atualizarLista() {
-    setAlugueis(obterAlugueis());
+  async function atualizarLista() {
     limpar();
+
+    await carregarAlugueis();
   }
 
-  function registrar(evento) {
+  async function registrar(evento) {
     evento.preventDefault();
 
+    if (registrando) {
+      return;
+    }
+
     setErro("");
+    setSucesso("");
 
     if (!aluguel) {
       setErro("Selecione um aluguel em locação.");
+      return;
+    }
+
+    if (!equipamento) {
+      setErro(
+        "O aluguel não possui um equipamento identificado."
+      );
       return;
     }
 
@@ -162,9 +213,44 @@ function RegistrarDevolucao() {
       return;
     }
 
-    setErro(
-      "O registro da devolução estará disponível após a integração com o servidor."
-    );
+    setRegistrando(true);
+
+    try {
+      const parametros = new URLSearchParams({
+        dtDevolucao: dataDevolucao,
+        valorPago: String(Number(valorPago)),
+      });
+
+      await requisicao(
+        `/alugueis/${aluguel.idAluguel}/devolucao?${parametros}`,
+        {
+          method: "PUT",
+        }
+      );
+
+      const numeroAluguel = String(
+        aluguel.idAluguel
+      ).padStart(4, "0");
+
+      limpar();
+
+      setSucesso(
+        `Devolução do aluguel #${numeroAluguel} registrada com sucesso.`
+      );
+
+      await carregarAlugueis();
+
+      window.scrollTo(0, 0);
+    } catch (erro) {
+      console.error(erro);
+
+      setErro(
+        erro.message ||
+          "Não foi possível registrar a devolução."
+      );
+    } finally {
+      setRegistrando(false);
+    }
   }
 
   return (
@@ -183,12 +269,41 @@ function RegistrarDevolucao() {
         </p>
       </div>
 
+      {sucesso && (
+        <div
+          className="devolucao-aviso"
+          role="status"
+        >
+          {sucesso}
+        </div>
+      )}
+
+      {erroLista && (
+        <div
+          className="devolucao-erro"
+          role="alert"
+        >
+          <p>{erroLista}</p>
+
+          <button
+            type="button"
+            className="devolucao-botao-secundario"
+            onClick={atualizarLista}
+            disabled={carregando || registrando}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )}
+
       <div className="devolucao-indicadores">
         <div className="devolucao-indicador">
           <span>Aluguéis em andamento</span>
 
           <strong>
-            {alugueisEmLocacao.length}
+            {carregando || erroLista
+              ? "—"
+              : alugueisEmLocacao.length}
           </strong>
         </div>
 
@@ -196,7 +311,9 @@ function RegistrarDevolucao() {
           <span>Aluguéis encerrados</span>
 
           <strong>
-            {alugueisEncerrados.length}
+            {carregando || erroLista
+              ? "—"
+              : alugueisEncerrados.length}
           </strong>
         </div>
       </div>
@@ -227,14 +344,21 @@ function RegistrarDevolucao() {
                 value={aluguelId}
                 onChange={selecionarAluguel}
                 disabled={
+                  carregando ||
+                  registrando ||
+                  Boolean(erroLista) ||
                   alugueisEmLocacao.length === 0
                 }
                 required
               >
                 <option value="">
-                  {alugueisEmLocacao.length === 0
-                    ? "Nenhum aluguel em locação"
-                    : "Selecione um aluguel"}
+                  {carregando
+                    ? "Carregando aluguéis..."
+                    : erroLista
+                      ? "Erro na consulta"
+                      : alugueisEmLocacao.length === 0
+                        ? "Nenhum aluguel em locação"
+                        : "Selecione um aluguel"}
                 </option>
 
                 {alugueisEmLocacao.map((item) => (
@@ -254,24 +378,27 @@ function RegistrarDevolucao() {
             </label>
           </div>
 
-          {alugueisEmLocacao.length === 0 && (
-            <div className="devolucao-vazio">
-              <h3>Nenhuma devolução pendente</h3>
+          {!carregando &&
+            !erroLista &&
+            alugueisEmLocacao.length === 0 && (
+              <div className="devolucao-vazio">
+                <h3>Nenhuma devolução pendente</h3>
 
-              <p>
-                Não há aluguéis em andamento
-                aguardando a devolução do equipamento.
-              </p>
+                <p>
+                  Não há aluguéis em andamento
+                  aguardando a devolução do equipamento.
+                </p>
 
-              <button
-                type="button"
-                className="devolucao-botao-secundario"
-                onClick={atualizarLista}
-              >
-                Atualizar lista
-              </button>
-            </div>
-          )}
+                <button
+                  type="button"
+                  className="devolucao-botao-secundario"
+                  onClick={atualizarLista}
+                  disabled={registrando}
+                >
+                  Atualizar lista
+                </button>
+              </div>
+            )}
 
           {aluguel && (
             <div className="devolucao-resumo">
@@ -393,7 +520,8 @@ function RegistrarDevolucao() {
           ) : (
             <div className="devolucao-aviso">
               As informações do equipamento físico
-              não estão disponíveis.
+              não estão disponíveis. Não será possível
+              registrar a devolução sem essa identificação.
             </div>
           )}
         </section>
@@ -419,11 +547,16 @@ function RegistrarDevolucao() {
               <input
                 type="datetime-local"
                 value={dataDevolucao}
-                disabled={!aluguel}
+                disabled={
+                  !aluguel ||
+                  !equipamento ||
+                  registrando
+                }
                 onChange={(evento) => {
                   setDataDevolucao(
                     evento.target.value
                   );
+
                   setErro("");
                 }}
                 required
@@ -482,7 +615,11 @@ function RegistrarDevolucao() {
                 step="0.01"
                 value={valorPago}
                 placeholder="0,00"
-                disabled={!aluguel}
+                disabled={
+                  !aluguel ||
+                  !equipamento ||
+                  registrando
+                }
                 onChange={(evento) => {
                   setValorPago(evento.target.value);
                   setErro("");
@@ -533,8 +670,7 @@ function RegistrarDevolucao() {
             <span>Patrimônio</span>
 
             <strong>
-              {equipamento?.numeroPatrimonio ||
-                "—"}
+              {equipamento?.numeroPatrimonio ?? "—"}
             </strong>
           </div>
 
@@ -601,6 +737,7 @@ function RegistrarDevolucao() {
             type="button"
             className="devolucao-botao-secundario"
             onClick={limpar}
+            disabled={registrando}
           >
             Limpar formulário
           </button>
@@ -610,7 +747,9 @@ function RegistrarDevolucao() {
             className="devolucao-botao-principal"
             disabled={!podeRegistrar}
           >
-            Registrar devolução
+            {registrando
+              ? "Registrando devolução..."
+              : "Registrar devolução"}
           </button>
         </div>
       </form>

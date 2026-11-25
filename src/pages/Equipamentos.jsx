@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   obterEquipamentos,
   obterTiposEquipamento,
-  buscarTipoPorId,
+  buscarEquipamentoPorId,
 } from "../services/equipamentosService";
 
 import "../styles/equipamentos.css";
 
 function formatarMoeda(valor) {
+  if (valor == null) {
+    return "Não informado";
+  }
+
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
@@ -33,8 +37,11 @@ function CampoDetalhe({ titulo, valor }) {
 }
 
 function Equipamentos() {
-  const [equipamentos] = useState(obterEquipamentos);
-  const [tipos] = useState(obterTiposEquipamento);
+  const [equipamentos, setEquipamentos] = useState([]);
+  const [tipos, setTipos] = useState([]);
+
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
 
   const [aba, setAba] = useState("tipos");
   const [busca, setBusca] = useState("");
@@ -44,6 +51,45 @@ function Equipamentos() {
 
   const [equipamentoSelecionado, setEquipamentoSelecionado] =
     useState(null);
+
+  async function carregarDados() {
+    setCarregando(true);
+    setErro("");
+
+    try {
+      const [listaEquipamentos, listaTipos] =
+        await Promise.all([
+          obterEquipamentos(),
+          obterTiposEquipamento(),
+        ]);
+
+      setEquipamentos(listaEquipamentos);
+      setTipos(listaTipos);
+    } catch (erro) {
+      console.error(erro);
+
+      setEquipamentos([]);
+      setTipos([]);
+
+      setErro(
+        "Não foi possível consultar os equipamentos. " +
+        "Verifique se o servidor está funcionando."
+      );
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  useEffect(() => {
+    carregarDados();
+  }, []);
+
+  function buscarTipoLocal(id) {
+    return tipos.find(
+      (tipo) =>
+        String(tipo.idTipoEquipamento) === String(id)
+    );
+  }
 
   const quantidadeDisponiveis = equipamentos.filter(
     (equipamento) => !equipamento.isAlugado
@@ -61,7 +107,7 @@ function Equipamentos() {
 
   const equipamentosFiltrados = equipamentos.filter(
     (equipamento) => {
-      const tipo = buscarTipoPorId(
+      const tipo = buscarTipoLocal(
         equipamento.idTipoEquipamento
       );
 
@@ -124,13 +170,39 @@ function Equipamentos() {
     setFiltroSituacao("todos");
   }
 
-  function visualizarEquipamento(equipamento) {
-    setEquipamentoSelecionado(equipamento);
-    window.scrollTo(0, 0);
+  async function visualizarEquipamento(equipamento) {
+    setCarregando(true);
+    setErro("");
+
+    try {
+      const detalhes = await buscarEquipamentoPorId(
+        equipamento.idEquipamento
+      );
+
+      if (!detalhes) {
+        setErro("Equipamento não encontrado.");
+        return;
+      }
+
+      setEquipamentoSelecionado(detalhes);
+
+      window.scrollTo(0, 0);
+    } catch (erro) {
+      console.error(erro);
+
+      setErro(
+        "Não foi possível consultar os detalhes " +
+        "do equipamento."
+      );
+    } finally {
+      setCarregando(false);
+    }
   }
 
   function voltarLista() {
     setEquipamentoSelecionado(null);
+    carregarDados();
+
     window.scrollTo(0, 0);
   }
 
@@ -140,10 +212,32 @@ function Equipamentos() {
     setFiltroSituacao("todos");
   }
 
+  if (carregando) {
+    return (
+      <section className="equipamentos-pagina">
+        <div className="equipamentos-cabecalho">
+          <span className="secao-etiqueta">
+            CONSULTA DE EQUIPAMENTOS
+          </span>
+
+          <h1>Equipamentos</h1>
+        </div>
+
+        <section className="equipamentos-bloco">
+          <div className="equipamentos-vazio">
+            <h3>Carregando equipamentos...</h3>
+
+            <p>Aguarde enquanto consultamos o servidor.</p>
+          </div>
+        </section>
+      </section>
+    );
+  }
+
   if (equipamentoSelecionado) {
     const equipamento = equipamentoSelecionado;
 
-    const tipo = buscarTipoPorId(
+    const tipo = buscarTipoLocal(
       equipamento.idTipoEquipamento
     );
 
@@ -197,7 +291,7 @@ function Equipamentos() {
 
             <CampoDetalhe
               titulo="Tipo de equipamento"
-              valor={tipo?.nome}
+              valor={tipo?.nome ?? equipamento.tipoEquipamento}
             />
 
             <CampoDetalhe
@@ -263,326 +357,367 @@ function Equipamentos() {
         </p>
       </div>
 
-      <div className="equipamentos-indicadores">
-        <button
-          type="button"
-          className={`equipamentos-indicador ${
-            aba === "fisicos" &&
-            filtroSituacao === "todos"
-              ? "ativo"
-              : ""
-          }`}
-          onClick={() => filtrarPorSituacao("todos")}
+      {erro && (
+        <section
+          className="equipamentos-bloco"
+          role="alert"
         >
-          <span>Total de equipamentos</span>
-          <strong>{equipamentos.length}</strong>
-          <small>Equipamentos cadastrados</small>
-        </button>
+          <div className="equipamentos-vazio">
+            <h3>Erro na consulta</h3>
 
-        <button
-          type="button"
-          className={`equipamentos-indicador ${
-            aba === "fisicos" &&
-            filtroSituacao === "disponivel"
-              ? "ativo"
-              : ""
-          }`}
-          onClick={() =>
-            filtrarPorSituacao("disponivel")
-          }
-        >
-          <span>Disponíveis</span>
+            <p>{erro}</p>
 
-          <strong className="texto-disponivel">
-            {quantidadeDisponiveis}
-          </strong>
+            <button
+              type="button"
+              className="equipamentos-botao-secundario"
+              onClick={carregarDados}
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </section>
+      )}
 
-          <small>Disponíveis para locação</small>
-        </button>
+      {!erro && (
+        <>
+          <div className="equipamentos-indicadores">
+            <button
+              type="button"
+              className={`equipamentos-indicador ${
+                aba === "fisicos" &&
+                filtroSituacao === "todos"
+                  ? "ativo"
+                  : ""
+              }`}
+              onClick={() => filtrarPorSituacao("todos")}
+            >
+              <span>Total de equipamentos</span>
 
-        <button
-          type="button"
-          className={`equipamentos-indicador ${
-            aba === "fisicos" &&
-            filtroSituacao === "alugado"
-              ? "ativo"
-              : ""
-          }`}
-          onClick={() =>
-            filtrarPorSituacao("alugado")
-          }
-        >
-          <span>Em locação</span>
+              <strong>{equipamentos.length}</strong>
 
-          <strong className="texto-alugado">
-            {quantidadeAlugados}
-          </strong>
+              <small>Equipamentos cadastrados</small>
+            </button>
 
-          <small>Equipamentos alugados</small>
-        </button>
-      </div>
-
-      <section className="equipamentos-bloco">
-        <div className="equipamentos-abas">
-          <button
-            type="button"
-            className={aba === "tipos" ? "ativo" : ""}
-            onClick={() => alterarAba("tipos")}
-          >
-            Tipos de equipamentos
-          </button>
-
-          <button
-            type="button"
-            className={aba === "fisicos" ? "ativo" : ""}
-            onClick={() => alterarAba("fisicos")}
-          >
-            Equipamentos físicos
-          </button>
-        </div>
-
-        <div
-          className={`equipamentos-filtros ${
-            aba === "tipos" ? "filtro-simples" : ""
-          }`}
-        >
-          <label>
-            Buscar equipamento
-
-            <input
-              type="text"
-              value={busca}
-              onChange={(evento) =>
-                setBusca(evento.target.value)
+            <button
+              type="button"
+              className={`equipamentos-indicador ${
+                aba === "fisicos" &&
+                filtroSituacao === "disponivel"
+                  ? "ativo"
+                  : ""
+              }`}
+              onClick={() =>
+                filtrarPorSituacao("disponivel")
               }
-              placeholder={
-                aba === "tipos"
-                  ? "Nome do tipo de equipamento..."
-                  : "Modelo, fabricante ou patrimônio..."
+            >
+              <span>Disponíveis</span>
+
+              <strong className="texto-disponivel">
+                {quantidadeDisponiveis}
+              </strong>
+
+              <small>Disponíveis para locação</small>
+            </button>
+
+            <button
+              type="button"
+              className={`equipamentos-indicador ${
+                aba === "fisicos" &&
+                filtroSituacao === "alugado"
+                  ? "ativo"
+                  : ""
+              }`}
+              onClick={() =>
+                filtrarPorSituacao("alugado")
               }
-            />
-          </label>
+            >
+              <span>Em locação</span>
 
-          {aba === "fisicos" && (
-            <>
-              <label>
-                Tipo de equipamento
+              <strong className="texto-alugado">
+                {quantidadeAlugados}
+              </strong>
 
-                <select
-                  value={filtroTipo}
-                  onChange={(evento) =>
-                    setFiltroTipo(evento.target.value)
-                  }
-                >
-                  <option value="todos">Todos</option>
+              <small>Equipamentos alugados</small>
+            </button>
+          </div>
 
-                  {tipos.map((tipo) => (
-                    <option
-                      key={tipo.idTipoEquipamento}
-                      value={tipo.idTipoEquipamento}
-                    >
-                      {tipo.nome}
-                    </option>
-                  ))}
-                </select>
-              </label>
+          <section className="equipamentos-bloco">
+            <div className="equipamentos-abas">
+              <button
+                type="button"
+                className={aba === "tipos" ? "ativo" : ""}
+                onClick={() => alterarAba("tipos")}
+              >
+                Tipos de equipamentos
+              </button>
 
-              <label>
-                Situação
-
-                <select
-                  value={filtroSituacao}
-                  onChange={(evento) =>
-                    setFiltroSituacao(evento.target.value)
-                  }
-                >
-                  <option value="todos">Todas</option>
-
-                  <option value="disponivel">
-                    Disponível
-                  </option>
-
-                  <option value="alugado">
-                    Em locação
-                  </option>
-                </select>
-              </label>
-            </>
-          )}
-        </div>
-
-        {aba === "tipos" ? (
-          <>
-            <div className="equipamentos-lista-cabecalho">
-              <h2>Tipos cadastrados</h2>
-
-              <p>
-                {tiposFiltrados.length} tipo(s)
-                encontrado(s)
-              </p>
+              <button
+                type="button"
+                className={aba === "fisicos" ? "ativo" : ""}
+                onClick={() => alterarAba("fisicos")}
+              >
+                Equipamentos físicos
+              </button>
             </div>
 
-            {tiposFiltrados.length === 0 ? (
-              <div className="equipamentos-vazio">
-                <h3>Nenhum tipo encontrado</h3>
+            <div
+              className={`equipamentos-filtros ${
+                aba === "tipos" ? "filtro-simples" : ""
+              }`}
+            >
+              <label>
+                Buscar equipamento
 
-                <p>
-                  Tente pesquisar por outro nome.
-                </p>
+                <input
+                  type="text"
+                  value={busca}
+                  onChange={(evento) =>
+                    setBusca(evento.target.value)
+                  }
+                  placeholder={
+                    aba === "tipos"
+                      ? "Nome do tipo de equipamento..."
+                      : "Modelo, fabricante ou patrimônio..."
+                  }
+                />
+              </label>
 
-                <button
-                  type="button"
-                  className="equipamentos-botao-secundario"
-                  onClick={limparFiltros}
-                >
-                  Limpar busca
-                </button>
-              </div>
-            ) : (
-              <div className="equipamentos-lista">
-                {tiposFiltrados.map((tipo) => {
-                  const equipamentosDoTipo =
-                    equipamentos.filter(
-                      (equipamento) =>
-                        equipamento.idTipoEquipamento ===
-                        tipo.idTipoEquipamento
-                    );
+              {aba === "fisicos" && (
+                <>
+                  <label>
+                    Tipo de equipamento
 
-                  const disponiveis =
-                    equipamentosDoTipo.filter(
-                      (equipamento) =>
-                        !equipamento.isAlugado
-                    ).length;
-
-                  return (
-                    <article
-                      className="equipamentos-tipo-card"
-                      key={tipo.idTipoEquipamento}
+                    <select
+                      value={filtroTipo}
+                      onChange={(evento) =>
+                        setFiltroTipo(evento.target.value)
+                      }
                     >
-                      <div className="equipamentos-card-info">
-                        <h3>{tipo.nome}</h3>
+                      <option value="todos">Todos</option>
 
-                        <p>
-                          {formatarMoeda(tipo.valorDiaria)}
-                          {" / dia"}
-                        </p>
-                      </div>
+                      {tipos.map((tipo) => (
+                        <option
+                          key={tipo.idTipoEquipamento}
+                          value={tipo.idTipoEquipamento}
+                        >
+                          {tipo.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-                      <div className="equipamentos-quantidade">
-                        <strong>{disponiveis}</strong>
+                  <label>
+                    Situação
 
-                        <small>
-                          disponíveis de{" "}
-                          {equipamentosDoTipo.length}
-                        </small>
-                      </div>
+                    <select
+                      value={filtroSituacao}
+                      onChange={(evento) =>
+                        setFiltroSituacao(evento.target.value)
+                      }
+                    >
+                      <option value="todos">Todas</option>
 
-                      <button
-                        type="button"
-                        className="equipamentos-botao-secundario"
-                        onClick={() =>
-                          visualizarTipo(
-                            tipo.idTipoEquipamento
-                          )
-                        }
-                      >
-                        Ver equipamentos →
-                      </button>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <div className="equipamentos-lista-cabecalho">
-              <h2>Equipamentos cadastrados</h2>
+                      <option value="disponivel">
+                        Disponível
+                      </option>
 
-              <p>
-                {equipamentosFiltrados.length} equipamento(s)
-                encontrado(s)
-              </p>
+                      <option value="alugado">
+                        Em locação
+                      </option>
+                    </select>
+                  </label>
+                </>
+              )}
             </div>
 
-            {equipamentosFiltrados.length === 0 ? (
-              <div className="equipamentos-vazio">
-                <h3>Nenhum equipamento encontrado</h3>
+            {aba === "tipos" ? (
+              <>
+                <div className="equipamentos-lista-cabecalho">
+                  <h2>Tipos cadastrados</h2>
 
-                <p>
-                  Tente alterar os filtros ou o
-                  termo da busca.
-                </p>
+                  <p>
+                    {tiposFiltrados.length} tipo(s)
+                    encontrado(s)
+                  </p>
+                </div>
 
-                <button
-                  type="button"
-                  className="equipamentos-botao-secundario"
-                  onClick={limparFiltros}
-                >
-                  Limpar filtros
-                </button>
-              </div>
-            ) : (
-              <div className="equipamentos-lista">
-                {equipamentosFiltrados.map(
-                  (equipamento) => {
-                    const tipo = buscarTipoPorId(
-                      equipamento.idTipoEquipamento
-                    );
+                {tiposFiltrados.length === 0 ? (
+                  <div className="equipamentos-vazio">
+                    <h3>Nenhum tipo encontrado</h3>
 
-                    return (
-                      <article
-                        className="equipamentos-card"
-                        key={equipamento.idEquipamento}
-                      >
-                        <div className="equipamentos-card-info">
-                          <small className="equipamentos-patrimonio">
-                            {equipamento.numeroPatrimonio}
-                          </small>
+                    <p>
+                      {tipos.length === 0
+                        ? "Nenhum tipo de equipamento cadastrado."
+                        : "Tente pesquisar por outro nome."}
+                    </p>
 
-                          <h3>
-                            {equipamento.fabricante}{" "}
-                            {equipamento.modelo}
-                          </h3>
+                    <button
+                      type="button"
+                      className="equipamentos-botao-secundario"
+                      onClick={limparFiltros}
+                    >
+                      Limpar busca
+                    </button>
+                  </div>
+                ) : (
+                  <div className="equipamentos-lista">
+                    {tiposFiltrados.map((tipo) => {
+                      const equipamentosDoTipo =
+                        equipamentos.filter(
+                          (equipamento) =>
+                            String(equipamento.idTipoEquipamento) ===
+                            String(tipo.idTipoEquipamento)
+                        );
 
-                          <p>
-                            {tipo?.nome ||
-                              "Tipo não informado"}
-                          </p>
-                        </div>
+                      const disponiveis =
+                        equipamentosDoTipo.filter(
+                          (equipamento) =>
+                            !equipamento.isAlugado
+                        ).length;
 
-                        <span
-                          className={`equipamentos-status ${
-                            equipamento.isAlugado
-                              ? "alugado"
-                              : "disponivel"
-                          }`}
+                      return (
+                        <article
+                          className="equipamentos-tipo-card"
+                          key={tipo.idTipoEquipamento}
                         >
-                          {equipamento.isAlugado
-                            ? "Em locação"
-                            : "Disponível"}
-                        </span>
+                          <div className="equipamentos-card-info">
+                            <h3>{tipo.nome}</h3>
 
-                        <button
-                          type="button"
-                          className="equipamentos-botao-secundario"
-                          onClick={() =>
-                            visualizarEquipamento(
-                              equipamento
-                            )
-                          }
-                        >
-                          Ver detalhes →
-                        </button>
-                      </article>
-                    );
-                  }
+                            <p>
+                              {formatarMoeda(tipo.valorDiaria)}
+                              {" / dia"}
+                            </p>
+                          </div>
+
+                          <div className="equipamentos-quantidade">
+                            <strong>{disponiveis}</strong>
+
+                            <small>
+                              disponíveis de{" "}
+                              {equipamentosDoTipo.length}
+                            </small>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="equipamentos-botao-secundario"
+                            onClick={() =>
+                              visualizarTipo(
+                                tipo.idTipoEquipamento
+                              )
+                            }
+                          >
+                            Ver equipamentos →
+                          </button>
+                        </article>
+                      );
+                    })}
+                  </div>
                 )}
-              </div>
+              </>
+            ) : (
+              <>
+                <div className="equipamentos-lista-cabecalho">
+                  <h2>Equipamentos cadastrados</h2>
+
+                  <p>
+                    {equipamentosFiltrados.length} equipamento(s)
+                    encontrado(s)
+                  </p>
+                </div>
+
+                {equipamentosFiltrados.length === 0 ? (
+                  <div className="equipamentos-vazio">
+                    <h3>Nenhum equipamento encontrado</h3>
+
+                    <p>
+                      {equipamentos.length === 0
+                        ? "Nenhum equipamento cadastrado."
+                        : "Tente alterar os filtros ou o termo da busca."}
+                    </p>
+
+                    <button
+                      type="button"
+                      className="equipamentos-botao-secundario"
+                      onClick={limparFiltros}
+                    >
+                      Limpar filtros
+                    </button>
+                  </div>
+                ) : (
+                  <div className="equipamentos-lista">
+                    {equipamentosFiltrados.map(
+                      (equipamento) => {
+                        const tipo = buscarTipoLocal(
+                          equipamento.idTipoEquipamento
+                        );
+
+                        return (
+                          <article
+                            className="equipamentos-card"
+                            key={equipamento.idEquipamento}
+                          >
+                            <div className="equipamentos-card-info">
+                              <small className="equipamentos-patrimonio">
+                                {equipamento.numeroPatrimonio}
+                              </small>
+
+                              <h3>
+                                {equipamento.fabricante}{" "}
+                                {equipamento.modelo}
+                              </h3>
+
+                              <p>
+                                {tipo?.nome ||
+                                  equipamento.tipoEquipamento ||
+                                  "Tipo não informado"}
+                              </p>
+                            </div>
+
+                            <span
+                              className={`equipamentos-status ${
+                                equipamento.isAlugado
+                                  ? "alugado"
+                                  : "disponivel"
+                              }`}
+                            >
+                              {equipamento.isAlugado
+                                ? "Em locação"
+                                : "Disponível"}
+                            </span>
+
+                            <button
+                              type="button"
+                              className="equipamentos-botao-secundario"
+                              onClick={() =>
+                                visualizarEquipamento(
+                                  equipamento
+                                )
+                              }
+                            >
+                              Ver detalhes →
+                            </button>
+                          </article>
+                        );
+                      }
+                    )}
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
-      </section>
+          </section>
+
+          <div className="equipamentos-acoes">
+            <button
+              type="button"
+              className="equipamentos-botao-secundario"
+              onClick={carregarDados}
+            >
+              Atualizar equipamentos
+            </button>
+          </div>
+        </>
+      )}
     </section>
   );
 }
